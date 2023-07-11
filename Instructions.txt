@@ -1,0 +1,14 @@
+This project is available in Dataquest website, URL: "https://app.dataquest.io/m/99996/web-scraping-nba-stats-in-python/1/project-overview"
+Note some of the important instructions to navigate through different files I have uploaded:
+1. All CSV files were downloaded from the Python scripts written in .py files
+2. The code written in "mvp_html.py" Python script downloads multiple web pages from the URL given.
+3. The web pages downloaded from "mvp_html.py" script are used by the "mvp_table.py" file to download the required table.
+4. The resulting tables are appended and downloaded as "mvp_all_season.csv".
+5. Same steps (2 - 5) for files:
+   -- "player_stats.py", "stats_table.py" and "player_stats_per_game_all_seasons.csv"
+   -- "team_stats.py", "team_table.py", "team_standings_division.csv" and "team_standings_expanded.csv".
+6. Note that I have downlaod 2 CSV files from "team_stats.py", this is because many people download the Division table from the website, The expanded table
+   has a lot of information about teams because of which I have downloaded this table as well. You can choose whether you want both tables or any 1 of them,
+   edit the code in "team_stats.py" to adjust according to your requirement. 
+   -- Other than that the expanded table also required some data transformation to make its contents simpler. The data transformation is performed in the same
+      script the table is downloaded from i.e, "team_stats.py".
