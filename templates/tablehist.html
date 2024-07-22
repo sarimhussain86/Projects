@@ -1,0 +1,55 @@
+{% include 'table_cols_adjustment.html' %}
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<body>
+  <div class="container-fluid" id="main">
+	{% include 'top_menus.html' %}
+    <div class="row row-offcanvas row-offcanvas-left">
+	{% include 'left_menus_run.html' %}
+      <div class="col-md-9 col-lg-10 main">
+	  	<h2>Project:    {{project_name}} v{{projectVersion}}</h2>
+		<h3>Test Cases:	{{table_name}}</h3>
+		  	{% for dats in data %}
+		  	{% set outer_index = loop.index0 %}
+			<br><br>
+				<!--data is a 3-dimensional tuple with a dictionary as its innermost value, dats is the inner tuple,
+				hence dats[0][0] accesses the dictionary-->
+			  	{% if dats[0][0]['category_id']|string in categories %}
+					<!--dats[0][0]['category_id']|string][1], 'category_id' key of dictionary has two values, first is the
+					category name and second is category type, type value of 0 indicates a module, 1 indicates a category-->
+					<!-- 'data-item' calls an event everytime h4 is created and sends the value written to it -->
+					<h4>{{ "Module" if categories[dats[0][0]['category_id']|string][1] == 0 else "Category" }}: {{categories[dats[0][0]['category_id']|string][0]}}</h4>
+			  	{% endif %}
+			{% for dat in dats %}
+		  <strong>{{notes[dat[0]['note_id']|string]}}</strong>
+			  {% if dat[0]['note_id'] in notes %}
+				<Strong style="font-size:14px;">{{item['note']}}</Strong>
+			  {% endif %}
+			<table id="resizeMe_{{outer_index}}_{{loop.index0}}" data-tid="resizeMe" class="table table-striped">
+			<thead>
+			  <tr>
+                  {% for col in columns %}
+				  {% if col != "ID" and col !="Note ID" and col !="Category ID" %}
+                    <th>{{col}}</th>
+				  {% endif %}
+                  {% endfor %}
+			  </tr>
+			</thead>
+			<tbody>
+		  	{% for da in dat %}
+			  <tr>
+			  	{% for f in field %}
+				  {% if f != "id" and f !="note_id" and f !="category_id" %}
+					<td>{{da[f]}}</td>
+				  {% endif %}
+			  	{% endfor %}
+			  </tr>
+			{% endfor %}
+			</tbody>
+		  </table>
+		  {% endfor %}
+	  	{% endfor %}
+        <hr>
+	  	</div>
+  	</div>
+  </div>
+</body>

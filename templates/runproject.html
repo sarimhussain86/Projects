@@ -1,0 +1,50 @@
+<div id="selectprojecttorun" class="modal fade">
+    <div class="modal-dialog">
+        <form method="post" id="projectForm" action="{{ url_for('addrunproject', projectName='', projectVersion='') | safe}}">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"></button>
+                    <h4 class="modal-title"><i class="fa fa-plus"></i>Select Project To Work On</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="projectSelector" class="control-label">Project Name</label>
+                        <select name="Project" id="projectSelector" class="form-control"  onchange="updateVersionOptions()">
+                            <option value="">Select Project</option>
+                            {% for project in closed_projects %}
+                                <option value="{{project.project_name}}">{{project.project_name}}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="versionSelector" class="control-label">Project Version</label>
+                        <select name="Version" id="versionSelector" class="form-control">
+                            <option value="none" selected disabled hidden>Select Version</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <input type="submit" name="save" id="save" value="save" class="btn btn-info" />
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    var closed_projects = {{ closed_projects | tojson  | safe }};
+
+    // Update form action with selected values on form submission
+    $("#projectForm").submit(function() {
+        var selectedProject = $("#projectSelector").val();
+        var selectedVersion = $("#versionSelector").val();
+
+        // Update form action with selected values as query parameters
+        var formAction = "{{ url_for('addrunproject', projectName='', projectVersion='') | safe}}";
+        formAction = formAction.replace('projectName=', 'projectName=' + encodeURIComponent(selectedProject));
+        formAction = formAction.replace('projectVersion=', 'projectVersion=' + encodeURIComponent(selectedVersion));
+
+        $(this).attr('action', formAction);
+    });
+</script>

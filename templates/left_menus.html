@@ -1,0 +1,131 @@
+<!-- This HTML serves two purposes.
+ - It displays tables of the opened project in left menus
+ - The displayed table names in left menus are clickable and clicking on any of the names will open that table with its data -->
+<script>
+
+  // This is called when a table or any table's module/category is clicked from left menus. This function creates a URL
+  // and goes to it, The function in main.py that is called is 'tables()'
+  function sendValues(name, table_id, project_id, cat_mod_id, cat_mod_type) {
+
+  // Send a different parameter name (either 'category_id' or 'module_id') in the URL depending on the value of
+  // 'cat_mod_type' (depicts whether 'category' or 'module' is selected)
+    if (cat_mod_type == 'c') {
+      // Construct the URL with additional parameters
+      var url = 'tables?table_name=' + encodeURIComponent(name)  + '&table_id=' + encodeURIComponent(table_id)  + '&project_id=' + encodeURIComponent(project_id) + '&category_id=' + encodeURIComponent(cat_mod_id) + '&category_module_type=' + encodeURIComponent(cat_mod_type);
+    }
+    else if (cat_mod_type == 'm') {
+      // Construct the URL with additional parameters
+      var url = 'tables?table_name=' + encodeURIComponent(name)  + '&table_id=' + encodeURIComponent(table_id)  + '&project_id=' + encodeURIComponent(project_id) + '&module_id=' + encodeURIComponent(cat_mod_id) + '&category_module_type=' + encodeURIComponent(cat_mod_type);
+    }
+    else {
+      // Construct the URL with additional parameters
+      var url = 'tables?table_name=' + encodeURIComponent(name)  + '&table_id=' + encodeURIComponent(table_id)  + '&project_id=' + encodeURIComponent(project_id) + '&category_id=' + encodeURIComponent(cat_mod_id) + '&category_module_type=' + encodeURIComponent(cat_mod_type);
+    }
+
+    // Redirect to the specified route with parameters
+    window.location.href = url;
+  }
+</script>
+
+<style>
+  .green-box {
+    background-color: #4CAF50; /* Green color */
+    align-items: center;
+    width: 77%;
+    padding: 10px;
+    margin: 10px auto;
+    border-radius: 8px;
+    text-align: center;
+  }
+  button.add-table-button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    font-size: 15px;
+  }
+
+  .scrollbar {
+    height: 75vh;
+    width: 100%;
+    overflow: auto;
+    padding: 0 10px;
+  }
+  /*       ScrollBar 1        */
+
+  #dynamic-height-list::-webkit-scrollbar {
+    width: 16px;
+  }
+
+  #dynamic-height-list::-webkit-scrollbar-track {
+    border-radius: 8px;
+    background-color: #e7e7e7;
+    border: 1px solid #cacaca;
+  }
+
+  #dynamic-height-list::-webkit-scrollbar-thumb {
+    border-radius: 8px;
+    border: 3px solid transparent;
+    background-clip: content-box;
+    background-color: #d55959;
+  }
+
+  /* Adjust styles for nav-link */
+  .nav-link {
+    margin-bottom: 0px; /* Remove margin */
+    padding: 0; /* Remove padding */
+  }
+
+  .leftMenus {
+    margin-left: 10px; /* Remove margin */
+    padding: 0;
+  }
+</style>
+
+<div class="col-md-3 col-lg-2 sidebar-offcanvas" id="sidebar" role="navigation">
+<!--  <div class="green-box">-->
+<!--    <button class="add-table-button" onclick="addNewTable({{project_id}})"><strong>Add New Table</strong></button>-->
+<!--  </div>-->
+  <div class="scrollbar"  id="dynamic-height-list" style="max-height: calc(80vh); overflow-y: auto;">
+    <ol class="nav flex-column pl-1 leftMenus" style="list-style-type:I; font-size:14px;">
+      {% for info in table_info %}
+        {% if info.category_ids is none and info.module_ids is none %}
+        <li class="nav-item">
+          <a class="nav-link" href="#" onclick="sendValues('{{info.table_name}}', {{info.table_id}}, {{info.project_id}}, 'None', 'None')">
+            <p>{{info.table_name}}</p>
+          </a>
+        </li>
+        {% else %}
+      <li class="nav-item">
+        <a class="nav-link" href="#submenu{{loop.index0}}" data-toggle="collapse" data-target="#submenu{{loop.index0}}"><p>{{info.table_name}} ▾</p></a>
+          <ol class="list-unstyled flex-column pl-3 collapse show" id="submenu{{loop.index0}}" aria-expanded="false" style="list-style-type:disc; font-size:13px;">
+          <!-- The 'category_type' value 'c' means 'category', typically used by 'Sanity Test Calls' -->
+            {% if info.category_type == 'c' %}
+            <li class="nav-item"><a class="nav-link" href="#" style="margin-bottom: 1px;" onclick="sendValues('{{info.table_name}}', {{info.table_id}}, {{info.project_id}}, 'None', 'c')">
+              <p style="margin-bottom: 10px;">All Test Cases</p></a></li>
+              {% for cat_id in info.category_ids %}
+                {% if cat_id|string in categories %}
+                  <li class="nav-item"><a class="nav-link" href="#" style="margin-bottom: 1px;" onclick="sendValues('{{info.table_name}}', {{info.table_id}}, {{info.project_id}}, {{cat_id}}, 'c')">
+                    <p style="margin-bottom: 10px;">{{categories[cat_id|string]}}</p></a></li>
+                {% endif %}
+              {% endfor %}
+            {% endif %}
+
+            <!-- The 'category_type' value 'm' means 'modules' -->
+            {% if info.category_type == 'm' %}
+            <li class="nav-item"><a class="nav-link" href="#" style="margin-bottom: 1px;" onclick="sendValues('{{info.table_name}}', {{info.table_id}}, {{info.project_id}}, 'None', 'm')">
+              <p style="margin-bottom: 10px;">All Test Cases</p></a></li>
+              {% for module_id in info.module_ids %}
+                {% if module_id|string in modules %}
+                  <li class="nav-item"><a class="nav-link" href="#" style="margin-bottom: 1px;" onclick="sendValues('{{info.table_name}}', {{info.table_id}}, {{info.project_id}}, {{module_id}}, 'm')">
+                    <p style="margin-bottom: 10px;">{{modules[module_id|string]}}</p></a></li>
+                {% endif %}
+              {% endfor %}
+            {% endif %}
+          </ol>
+        </li>
+        {% endif %}
+      {% endfor %}
+    </ol>
+  </div>
+</div>
+

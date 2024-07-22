@@ -1,0 +1,11 @@
+<body>
+  <div class="container-fluid" id="main">
+	{% include 'top_menus.html' %}
+    <div class="row row-offcanvas row-offcanvas-left">
+	{% include 'left_menus.html' %}
+        <div class="col-md-9 col-lg-10 main">
+	  	    <h3>Project: {{project_name}} v{{projectVersion}}</h3>
+        </div>
+      </div>
+  </body>
+</html>

@@ -1,0 +1,205 @@
+{% include 'table_cols_adjustment.html' %}
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script src="{{ url_for('static',filename='js/newtestcase.js') }}"></script>
+<script src="{{ url_for('static',filename='js/edit_test_case_result.js') }}"></script>
+
+<style>
+	/* Style for custom select */
+	.filter_test_cases_css {
+		appearance: none;
+		-webkit-appearance: none;
+		-moz-appearance: none;
+		background-color: #f8f9fa;
+		border: 1px solid #ced4da;
+		border-radius: 4px;
+		padding: 8px 12px;
+		font-size: 14px;
+		cursor: pointer;
+		position: relative;
+	}
+
+	/* Style for custom select when focused */
+	.filter_test_cases_css:focus {
+		outline: none;
+		border-color: #66afe9;
+		box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+	}
+</style>
+
+<body>
+  <div class="container-fluid" id="main">
+	{% include 'top_menus.html' %}
+    <div class="row row-offcanvas row-offcanvas-left">
+	{% include 'left_menus_run.html' %}
+      <div class="col-md-9 col-lg-10 main">
+	  	<h2>Project:    {{project_name}} v{{projectVersion}} - Test Cycle: {{test_cycle_id}}</h2>
+		<h3>Test Cases:	{{table_name}}</h3>
+		  <div class="float-right mb-2 col-md-3" style="display: flex;">
+				<strong style="font-size: 14px; margin-right:10px;">Filter Test Cases</strong>
+				<select id="filter_test_cases" class="filter_test_cases_css" onchange="filter_test_cases_()">
+					<option value="All" {% if selected_filter_value == 'All' %} selected {% endif %}>All</option>
+					<option value="Passed" {% if selected_filter_value == 'Passed' %} selected {% endif %}>Passed</option>
+					<option value="Failed" {% if selected_filter_value == 'Failed' %} selected {% endif %}>Failed</option>
+					<option value="Skipped" {% if selected_filter_value == 'Skipped' %} selected {% endif %}>Skipped</option>
+			  	</select>
+			</div>
+		  	{% for dats in data %}
+		  	{% set outer_index = loop.index0 %}
+
+		  	<br><br>
+		  		<!--data is a 3-dimensional tuple with a dictionary as its innermost value, dats is the inner tuple,
+					hence dats[0][0] accesses the dictionary -->
+				<!-- Also in tables.html we have put only	"if dats[0][0]['module_id']|string != 'None'" nut here
+					 we have changed things a little because in function table_createproj() in main.py, we have replaced
+					 keys having None values with '' -->
+		  		{% if dats[0][0]['module_id']|string != '' %}
+					<!--dats[0][0]['category_id']|string][1], 'category_id' key of dictionary has two values, first is the
+					category name and second is category type, type value of 0 indicates a module, 1 indicates a category-->
+					<h4>Module : {{modules[dats[0][0]['module_id']|string]}}</h4>
+				<!--data is a 3-dimensional tuple with a dictionary as its innermost value, dats is the inner tuple,
+				hence dats[0][0] accesses the dictionary-->
+			  	{% elif dats[0][0]['category_id']|string in categories %}
+					<!--dats[0][0]['category_id']|string][1], 'category_id' key of dictionary has two values, first is the
+					category name and second is category type, type value of 0 indicates a module, 1 indicates a category-->
+					<!-- 'data-item' calls an event everytime h4 is created and sends the value written to it -->
+					<h4>Category : {{categories[dats[0][0]['category_id']|string]}}</h4>
+			  	{% endif %}
+			{% for dat in dats %}
+		  <strong>{{notes[dat[0]['note_id']|string]}}</strong>
+			  {% if dat[0]['note_id'] in notes %}
+				<Strong style="font-size:14px;">{{item['note']}}</Strong>
+			  {% endif %}
+			<table id="resizeMe_{{outer_index}}_{{loop.index0}}" data-tid="resizeMe" class="table table-striped">
+			<thead>
+			  <tr>
+                  {% for col in columns %}
+				  {% if col != "ID" and col !="Note ID" and col !="Category ID" and col !="Module ID" %}
+                    <th>{{col}}</th>
+				  {% endif %}
+                  {% endfor %}
+			  </tr>
+			</thead>
+			<tbody>
+		  	{% for da in dat %}
+			  <tr>
+			  	{% for f in field %}
+				  {% if f != "id" and f !="note_id" and f !="category_id" and f !="module_id"  %}
+					<td>{{da[f]}}</td>
+				  {% endif %}
+			  	{% endfor %}
+				<td><button type="button" id="edittestcase{{da['id']}}" onclick="getrowid(this, {{da}}, {{field}}, {{columns}}, '{{ table_name }}', '{{exception}}', {{project_id}}, {{table_id}}, '{{category_id}}', {{test_cycle_id}}, {{last_test_case_id}})" class="btn btn-primary">Edit Result</button></td>
+			  </tr>
+			{% endfor %}
+			</tbody>
+		  </table>
+		  {% endfor %}
+	  	{% endfor %}
+        <hr>
+<!--	  	<div class="float-right mb-2 col-md-2">-->
+<!--			<a href="{{url_for('submit_test_cycle', project_name=project_name, projectVersion=projectVersion, test_cycle_id=test_cycle_id)}}" onclick="return confirm_submit_test_cycle(this.href)" id="confirmSubmitTestCycle" class="btn btn-primary">Close Project</a>-->
+<!--		</div>-->
+	  </div>
+  	</div>
+  </div>
+</body>
+
+<div id="TestCaseModal" class="modal fade">
+    <div class="modal-dialog">
+        <form method="post" id="TestCaseForm" action="{{ url_for('AddEditTestCase', table_name=table_name, project_id=project_id, exception=exception, table_id=table_id,  category_id=category_id, test_cycle_id=test_cycle_id) | safe}}">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"></button>
+                    <h4 class="modal-title"><i class="fa fa-plus"></i>Add Test Case</h4>
+                </div>
+                <div class="modal-body">
+					{% for col in columns %}
+					{% if col != 'ID' and col !="Note ID" and col !="Category ID" and col !="Module ID" %}
+						{% if col == 'Test Case ID' %}
+							<div class="form-group" id="testcaseidinputs">
+								<!-- Each label should have a unique id, so we created it dynamically using index of for loop
+								 specified by 'loop.index0' -->
+								<label for="{{ field[loop.index0] }}" style="font-size: 14px;" class="control-label">{{col}}</label>
+								<select name="{{col}}" id="{{ field[loop.index0] }}" class="form-control"></select>
+							</div>
+							<div id="versionErrorMessageAddEditTestCaseForm" style="color: red; font-size: 14px; margin-bottom: 15px;"></div>
+
+							<!-- Dropdown menu for category -->
+							<div id="categoryDropdownDiv" class="form-group">
+								<label for="categoryss" style="font-size: 14px;" class="control-label">Category:</label>
+								<select name="Categoryss" id="categoryss" class="form-control"></select>
+							</div>
+
+							<!-- Dropdown menu for module -->
+							<div id="moduleDropdownDiv" class="form-group">
+								<label for="moduless" style="font-size: 14px;" class="control-label">Module:</label>
+								<select name="Moduless" id="moduless" class="form-control"></select>
+							</div>
+						{% elif col == "Actual Result" %}
+							<!-- Dropdown menu for Actual Result -->
+							<div id="actualresultDropdownDiv" class="form-group">
+								<label for="{{ field[loop.index0] }}" style="font-size: 14px;" class="control-label">{{col}}</label>
+								<select name="{{col}}" id="{{ field[loop.index0] }}" onchange="addtext()" class="form-control">
+									<option value="" selected disabled hidden>Select Actual Result</option>
+									<option value="Pass">Pass</option>
+									<option value="Fail">Fail</option>
+								</select>
+								<!-- The text area to type in reason for failure, will only be visible if user selects 'Fail' -->
+								<div class="form-group" id="reasonforfail" style="display: none; margin-top:15px;">
+									<label for="reason_for_fail" style="font-size: 14px;" class="control-label">Reason For Failure</label>
+									<textarea type="text" name="Reason For Fail" id="reason_for_fail" class="form-control" rows="5" placeholder='Type In Reason For Failure. Leave It Blank If Only "Fail" Should Be Written'></textarea>
+								</div>
+							</div>
+						{% else %}
+							<div class="form-group">
+								<label for="{{ field[loop.index0] }}" style="font-size: 14px;" class="control-label">{{col}}</label>
+								<textarea type="text" name="{{col}}" id="{{ field[loop.index0] }}" class="form-control" rows="5" placeholder="{{col}}"></textarea>
+							</div>
+						{% endif %}
+					{% endif %}
+					{% endfor %}
+                </div>
+                <div class="modal-footer">
+                    <input type="submit" name="Add" id="Add" value="Add" class="btn btn-info" />
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Define 'closed_projects' in the script tag
+    var closed_projects = {{ closed_projects | tojson  | safe }};
+    var categories = {{ categories | tojson  | safe }};
+    var table_id = {{ table_id | tojson  | safe }};
+    var table_name = {{ table_name | tojson  | safe }};
+    var project_id = {{ project_id | tojson  | safe }};
+    var test_cycle_id = {{ test_cycle_id | tojson  | safe }};
+    var category_id = {{ category_id | tojson  | safe }};
+    var module_id = {{ module_id | tojson  | safe }};
+    var category_or_module = {{ category_or_module | tojson  | safe }};
+
+
+	function confirm_submit_test_cycle(ConfirmProjectURL) {
+		var isConfirmed1 = window.confirm("Are You Sure You Want To Close The Project?");
+		// Check the user's response
+		if (isConfirmed1) {
+			var isConfirmed2 = window.confirm("All Changes In The Test Cycle Will Be Permanently Saved And No Changes Can Be Performed In TheFuture. Are You Sure You Want To Proceed?");
+			if (isConfirmed2) {
+				window.location.href = ConfirmProjectURL;
+			}
+			else {
+				return false;
+			}
+		} else {
+			// User clicked "Cancel", do nothing or handle accordingly
+			return false;
+		}
+	}
+
+	function filter_test_cases_(filter_value) {
+		var selected_filter_value = document.getElementById("filter_test_cases").value;
+		url = "tablerun?table_id="+table_id+"&table_name="+table_name+"&project_id="+project_id+"&test_cycle_id="+test_cycle_id+"&category_id="+category_id+"&module_id="+module_id+"&category_module_type="+category_or_module+"&selected_filter_value="+selected_filter_value;
+		window.location.href = url;
+	}
+</script>

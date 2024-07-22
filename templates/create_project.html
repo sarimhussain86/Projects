@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="{{ url_for('static',filename='js/projectversion.js') }}"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Project Form</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        form {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            width: 100%;
+            max-width: 500px;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .item-container {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 40px;
+        }
+
+        .item-list, .selected-items {
+            width: 48%;
+            max-height: 150px;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        select {
+            width: 100%;
+            height: 100%;
+            padding: 8px;
+            overflow: auto;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+
+        button {
+            padding: 12px;
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        .select-container {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .select-container select {
+            width: 48%;
+            box-sizing: border-box;
+            margin-right: 10px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+         #leftItems::-webkit-scrollbar,
+         #rightItems::-webkit-scrollbar {
+            width: 16px;
+          }
+
+          #leftItems::-webkit-scrollbar-track,
+          #rightItems::-webkit-scrollbar-track {
+            border-radius: 8px;
+            background-color: #e7e7e7;
+            border: 1px solid #cacaca;
+          }
+
+          #leftItems::-webkit-scrollbar-thumb,
+          #rightItems::-webkit-scrollbar-thumb {
+            border-radius: 8px;
+            border: 3px solid transparent;
+            background-clip: content-box;
+            background-color: #d55959;
+          }
+    </style>
+</head>
+<body>
+    <form id="projectForm">
+        <h2 style="text-align: center;">New Project Form</h2>
+
+        <label for="ExistingOrNewProduct">Do You Want To Create Project For An Existing Product Or A New Product?</label>
+        <select id="ExistingOrNewProduct" onchange="ExistingOrNew()">
+            <option value="" selected disabled hidden>Select An Option</option>
+            <option value='existingProduct'>Existing Product</option>
+            <option value='newProduct'>New Product</option>
+        </select>
+
+        <div class="newProduct" style="display: none">
+            <label for="product">New Product Name:</label>
+            <input type="text" id="product" style="margin-bottom: 0px;" required>
+            <div id="productErrorMessage" style="color: red; margin-bottom: 10px;"></div>
+        </div>
+
+        <div class="existingProjectAndVersion" style="display: none">
+            <label for="projectName">Project:</label>
+<!--            <input type="text" id="projectName" required>-->
+            <select id="projectName" onchange="updateVersionOptions()">
+                <option value="" selected disabled hidden>Select Existing Project</option>
+                {% for project in projects %}
+                <option value={{project.project_name}}>{{project.project_name}}</option>
+                {% endfor %}
+            </select>
+
+            <label for="projectVersion">Project Version:</label>
+            <input type="number" id="projectVersion" style="margin-bottom: 0px;" required>
+            <div id="versionErrorMessage" style="color: red; margin-bottom: 10px;"></div>
+        </div>
+
+<!--        <label for="copyTestCases">Do You Want To Copy Test Cases From An Existing Project?</label>-->
+<!--        <select id="copyTestCases" onchange="copy_TestCases()">-->
+<!--            <option value="" selected disabled hidden>Select An Option</option>-->
+<!--            <option value='Yes'>Yes</option>-->
+<!--            <option value='No'>No</option>-->
+<!--        </select>-->
+
+        <div class="select-container" style="Display: none;">
+            <label for="projectSelector">Select Project to Copy Test Cases:</label>
+            <select id="projectSelector" onchange="updateVersionOptions()">
+                <option value="" selected disabled hidden>Select Project</option>
+                {% for project in projects %}
+                <option value={{project.project_name}}>{{project.project_name}}</option>
+                {% endfor %}
+            </select>
+<!--            <select id="versionSelector">-->
+            <select id="versionSelector" onchange="updateAvailableItems()">
+                <option value="" selected disabled hidden>Select Version</option>
+            </select>
+        </div>
+
+        <div class="item-container" style="Display: none;">
+            <div class="item-list">
+                <label for="leftItems">Available Items:</label>
+                <select id="leftItems" multiple size="5" onclick="copyItem('leftItems', 'rightItems')"></select>
+            </div>
+
+            <div class="selected-items">
+                <label for="rightItems">Selected Items:</label>
+                <select id="rightItems" multiple size="5" onclick="removeItem('leftItems', 'rightItems')"></select>
+            </div>
+        </div>
+
+        <button type="button" onclick="confirmForm()">Confirm</button>
+        <button type="button" onclick="closeCreateProjectWindow()">Cancel</button>
+    </form>
+
+    <script>
+        var projects = {{ projects | tojson  | safe }};
+
+        // Define a global variable to store the list of dictionaries
+        var itemsList = [];
+        var selecteditemsdicts = [];
+
+        // If the tester is creating project from an existing product, he will see the option for project name and
+        // can type in new version for the project. Otherwise, the tester will enter an entirely new product name first
+        function ExistingOrNew() {
+            var newOrExisting = document.getElementById('ExistingOrNewProduct').value;
+
+            if (newOrExisting == 'existingProduct') {
+                document.querySelector('.newProduct').style.display = 'none';
+                document.querySelector('.existingProjectAndVersion').style.display = 'block';
+            }
+            else {
+                document.querySelector('.newProduct').style.display = 'block';
+                document.querySelector('.existingProjectAndVersion').style.display = 'none';
+            }
+        }
+
+        product.addEventListener('input', function () {
+            var projectName = document.getElementById('product').value;
+            var newProductErrorMessage = document.getElementById('productErrorMessage');
+            newProductErrorMessage.textContent = '';
+
+            // Check if a project with the same projectName and projectVersion already exists
+            var existingProject = projects.find(function(project) {
+                return project.project_name.toLowerCase() === projectName.toLowerCase();
+            });
+
+
+            // If an existing project is found, show an error
+            if (existingProject) {
+                //alert("Error: Project with the same name and version already exists.");
+                newProductErrorMessage.textContent = 'Product with the same name already exists.';
+                return newProductErrorMessage.textContent; // Return true to indicate the existence of a duplicate
+            }
+
+            return false; // Return false if no duplicate is found
+        });
+
+        // When version value is changed, the below code checks if the project name and version already exists in the
+        // Database, if it does an error will be shown. Add event listener to projectVersion to validate input
+        projectVersion.addEventListener('input', function () {
+            var projectName = document.getElementById('projectName').value;
+            var projectVersion = parseFloat(document.getElementById('projectVersion').value);
+            var versionErrorMessage = document.getElementById('versionErrorMessage');
+            // Reset error message
+            versionErrorMessage.textContent = '';
+
+            // Check if a project with the same projectName and projectVersion already exists
+            var existingProject = projects.find(function(project) {
+                return project.project_name === projectName && project.project_version.includes(projectVersion);
+            });
+
+            // If an existing project is found, show an error
+            if (existingProject) {
+                //alert("Error: Project with the same name and version already exists.");
+                versionErrorMessage.textContent = 'Project with the same name and version already exists.';
+                return versionErrorMessage.textContent; // Return true to indicate the existence of a duplicate
+            }
+
+            return false; // Return false if no duplicate is found
+        });
+
+        //function copy_TestCases() {
+        //    var copyTestCases = document.getElementById('copyTestCases').value;
+
+        //    if (copyTestCases == 'Yes') {
+        //        document.querySelector('.select-container').style.display = 'block';
+        //       document.querySelector('.item-container').style.display = 'block';
+        //    }
+        //    else {
+        //        document.querySelector('.select-container').style.display = 'none';
+        //        document.querySelector('.item-container').style.display = 'none';
+        //    }
+        //}
+
+        function confirmForm() {
+
+            if (document.querySelector('.existingProjectAndVersion').style.display == 'block') {
+                // Get the values of new project name and version
+                var projectName = document.getElementById('projectName').value;
+                var projectVersion = document.getElementById('projectVersion').value;
+
+                // Get the values of old project name and version from where to copy test cases
+                var project_name = document.getElementById('projectSelector').value;
+                var project_version = document.getElementById('versionSelector').value;
+
+                // Check if project name and version are filled
+                if (!projectName || !projectVersion) {
+                    alert('Please fill in both Project Name and Project Version.');
+                    return; // Exit the function if validation fails
+                }
+
+                var versionErrorMessage = document.getElementById('versionErrorMessage');
+                if (versionErrorMessage.textContent == 'Project with the same name and version already exists.') {
+                    alert("Error: Project with the same name and version already exists.");
+                    return true; // Return true to indicate the existence of a duplicate
+                }
+            }
+
+            else if (document.querySelector('.newProduct').style.display == 'block') {
+                // Get the values of new product name
+                var projectName = document.getElementById('product').value;
+
+                // The project version of the new product will always be 1
+                var projectVersion = 1;
+
+                // Check if product name is filled
+                if (!projectName) {
+                    alert('Please fill in the Product Name.');
+                    return; // Exit the function if validation fails
+                }
+
+                var newProductErrorMessage = document.getElementById('productErrorMessage');
+                if (newProductErrorMessage.textContent != '') {
+                    alert("Error: Product with the same name already exists.");
+                    return true; // Return true to indicate the existence of a duplicate
+                }
+            }
+
+            else {
+                alert("Error: Please Select If You Want To Create Project For An Existing Product Or A New Product?");
+                return true;
+            }
+
+            // Ask for confirmation
+            var userConfirmation = window.confirm("Are you sure you want to proceed?");
+
+            // Check user's choice
+            if (userConfirmation) {
+                var selectedItems = [];
+                var rightItemsSelect = document.getElementById('rightItems');
+                for (var i = 0; i < rightItemsSelect.options.length; i++) {
+                    selectedItems.push(rightItemsSelect.options[i].value);
+                }
+
+                // Convert each dictionary to a list of values
+                var listOfLists = selecteditemsdicts.map(function (dict) {
+                  return Object.values(dict); // This will be an array of ['item', 'hiddenItem']
+                });
+
+                window.opener.postMessage({
+                    projectName: projectName,
+                    projectVersion: projectVersion,
+                    selectedItems: selectedItems,
+                    project_name: project_name,
+                    project_version: project_version,
+                    listOfLists: listOfLists,
+                    selecteditemsdicts: encodeURIComponent(JSON.stringify(selecteditemsdicts))
+
+                }, '*');
+
+                window.close();
+            }
+
+            //else {
+            // User chose not to proceed
+            //}
+
+        }
+
+        function closeCreateProjectWindow() {
+          // Close the current window (optional)
+          window.close();
+        }
+
+        function copyItem(sourceId, targetId) {
+            var sourceSelect = document.getElementById(sourceId);
+            var targetSelect = document.getElementById(targetId);
+
+            for (var i = 0; i < sourceSelect.options.length; i++) {
+                var option = sourceSelect.options[i];
+
+                if (option.selected) {
+                    // Check if the selected item already exists in the target box
+                    var existsInTarget = Array.from(targetSelect.options).some(function (targetOption) {
+                        return targetOption.value === option.value;
+                    });
+
+                    if (existsInTarget) {
+                        alert("Error: The selected item already exists in the right box.");
+                        return; // Stop further processing
+                    }
+                    // Copy the selected item to the target box
+                    targetSelect.add(new Option(option.text, option.value));
+
+                    // Check if the item value matches any value of the key 'item' in itemsList
+                    var matchingItem = itemsList.find(function (itemDict) {
+                        return itemDict.item === option.value;
+                    });
+
+                    if (matchingItem) {
+                        // Insert the matching dictionary into the 'selecteditemsdicts' list
+                        selecteditemsdicts.push(matchingItem);
+                    }
+                }
+            }
+        }
+
+        function removeItem(sourceId, targetId) {
+            var targetSelect = document.getElementById(targetId);
+
+            for (var i = 0; i < targetSelect.options.length; i++) {
+                var option = targetSelect.options[i];
+
+                if (option.selected) {
+                    // Copy the selected item to the target box
+                    targetSelect.remove(option.index);
+
+                    // Find the dictionary in the 'selecteditemsdicts' list with item value equal to option value
+                    var indexInX = selecteditemsdicts.findIndex(function (itemDict) {
+                        return itemDict.item === option.value;
+                    });
+
+                    if (indexInX !== -1) {
+                        // Remove the dictionary from the 'selecteditemsdicts' list
+                        selecteditemsdicts.splice(indexInX, 1);
+                    }
+                }
+            }
+        }
+
+        // This is called when existing project version is selected to fetch the tables of that project and storit in the
+        // left items box
+        function updateAvailableItems() {
+            var projectSelect = document.getElementById('projectSelector');
+            var versionSelect = document.getElementById('versionSelector');
+            var leftItemsSelect = document.getElementById('leftItems');
+
+            // Clear the current items in the left box
+            leftItemsSelect.innerHTML = '';
+
+            // Retrieve the selected project name
+            var selectedProjectName = projectSelect.value;
+            var selectedVersionName = versionSelect.value;
+
+            // Make an asynchronous request to fetch items based on the selected project
+            fetch('/get_items', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ project_name: selectedProjectName, version_name: selectedVersionName }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Update the list of dictionaries
+                itemsList = data.items.map((item, index) => ({
+                    item: item,
+                    hiddenItem: data.hidden_items[index]
+                }));
+                // Populate the left box with the fetched items
+                data.items.forEach(item => {
+                    var option = document.createElement('option');
+                    option.value = item;
+                    option.text = item;
+                    leftItemsSelect.add(option);
+                });
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    </script>
+</body>
+</html>

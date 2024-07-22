@@ -1,0 +1,561 @@
+<!-- This script contains the Options to either view project data by selecting project name and  version or create a new
+ project by selecting from 'Select Project' dropdown menu. Other option in top menus is 'Run Project' that allows user
+ to work on projects, 'Resume Project' that allows user to resume the leftover project, 'View Historical Data' that
+ allows users to view the historical data (result, Remarks) of closed projects -->
+
+{% include 'header.html' %}
+<script src="{{ url_for('static',filename='js/sendSelectedValue.js') }}" xmlns="http://www.w3.org/1999/html"></script>
+<script src="{{ url_for('static',filename='js/top_menus_dropdowns.js') }}"></script>
+<script src="{{ url_for('static',filename='js/projectversion.js') }}"></script>
+<script src="{{ url_for('static',filename='js/top_menus_unordered_lists.js') }}"></script>
+
+<!-- Renders the form that creates new user -->
+<script src="{{ url_for('static',filename='js/user.js') }}"></script>
+<style>
+    .navbar-nav .nav-link {
+    color: white; /* Set the text color to white or another suitable color */
+    padding: 7px;
+    }
+    .custom-nav-box {
+        border-radius: 5px; /* Optional: Add rounded corners */
+        text-align: center;
+        display: inline-block;
+        width: 138px; /* Set a fixed width for all buttons */
+    }
+     .custom-nav-box:hover {
+        background-color: darkgreen; /* Change background color on hover */
+    }
+
+    .btn {
+        display: inline-block;
+        text-align: center;
+        width: 145px;
+    }
+
+    .col-auto p {
+        width: 135px;
+    }
+
+    .scrollable-box {
+      /*width: 300px;*/ /* Adjust the width as needed */
+      height: 200px; /* Adjust the height as needed */
+      overflow-y: auto; /* Enable vertical scrollbar when needed */
+      border: 1px solid #ccc; /* Optional: Add a border for styling */
+    }
+
+    #projectlist::-webkit-scrollbar {
+        width: 16px;
+    }
+
+    #projectlist::-webkit-scrollbar-track {
+        border-radius: 8px;
+        background-color: #e7e7e7;
+        border: 1px solid #cacaca;
+    }
+
+    #projectlist::-webkit-scrollbar-thumb {
+        border-radius: 8px;
+        border: 3px solid transparent;
+        background-clip: content-box;
+        background-color: #d55959;
+    }
+
+    /* Style for the lists */
+    ul {
+      list-style-type: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    li {
+      padding: 8px;
+      border-bottom: 1px solid #ddd; /* Optional: Add a border between items for styling */
+    }
+    .form-group {
+      margin-bottom: 10px;
+    }
+
+    button {
+      background-color: #ADD8E6;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    input[type="submit"] {
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        margin-bottom: 10px;
+    }
+
+    .column-list {
+      list-style-type: none;
+      padding: 0;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    .column-list-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px;
+      border-bottom: 1px solid #ccc;
+      transition: background-color 0.3s;
+    }
+
+    .project-and-test-cycle-id-container {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .column-list-item:last-child {
+      border-bottom: none;
+    }
+
+    .column-list-item:hover {
+      background-color: #f0f0f0;
+    }
+
+    .column-name,
+    .column-project-name-version,
+    .test-cycle-id{
+      font-weight: bold;
+      margin-right: 10px;
+    }
+
+    .column-startdate,
+    .column-enddate,
+    .column-creationdate {
+      color: #666;
+    }
+
+    .column-info {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .column-info span {
+        margin-bottom: 5px; /* Adjust the margin as needed */
+    }
+    .selected {
+      background-color: #4CAF50;
+      color: white;
+    }
+    .hiddenprojectid,
+    .hiddentestcycleid {
+        display: none;
+    }
+</style>
+
+<nav class="navbar navbar-expand-sm bg-dark">
+    <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#collapsingNavbar">
+     <span class="navbar-toggler-icon"></span>
+    </button>
+    <!--        The heading-->
+    <div class="navbar-collapse navbar-nav collapse" id="collapsingNavbar">
+        <h4><a class="nav-link" href="{{ url_for('index') }}">Test Case Database <span style="sr-only"></span></a></h4>
+
+        <!--        Items at the right of the top menus-->
+        <div class="row ml-auto">
+            <div class="col-auto">
+                <p><a class="btn btn-info btn-sm" href="#" id="viewproject">View Test Cases</a></p>
+            </div>
+            <div class="col-auto">
+                <p style="margin-bottom: 7px;"> <a class="btn btn-info btn-sm" href="#" onclick="createnewproject()">Create New Project</a></p>
+                <p style="margin-bottom: 7px;"><button type="button" class="btn btn-info btn-sm" id="resumeprojectreview" title="Resume Project Review">Edit Draft Projects</button></p>
+            </div>
+            <div class="col-auto">
+                <p style="margin-bottom: 7px;"><button type="button" class="btn btn-info btn-sm" id="run_or_resume_test_cycle" title="Run Test Cycle">Run Test Cycle</button></p>
+                {% if user == 'admin' %}
+                    <p style="margin-bottom: 7px;"><button type="button" class="btn btn-info btn-sm" id="delete_test_cycle" title="Delete Test Cycle">Delete Test Cycle</button></p>
+                {% else %}
+                    <p style="margin-bottom: 7px;"><button type="button" class="btn btn-info btn-sm" id="delete_test_cycle" title="Delete Test Cycle" disabled>Delete Test Cycle</button></p>
+                {% endif %}
+            </div>
+            <div class="col-auto">
+                <p style="margin-bottom: 7px;"><button type="button" class="btn btn-info btn-sm" id="historicaldata" title="View Historical Data" disabled>View Historical Data</button></p>
+                {% if user == 'admin' %}
+                    <p style="margin-bottom: 7px;"><button type="button" class="btn btn-info btn-sm" id="deleteproject" title="Delete Project">Delete Project</button></p>
+                {% else %}
+                    <p style="margin-bottom: 7px;"><button type="button" class="btn btn-info btn-sm" id="deleteproject" title="Delete Project" disabled>Delete Project</button></p>
+                {% endif %}
+            </div>
+            <!-- Register new user. Only 'admin' can register a new user -->
+            {% if user == 'admin' %}
+            <div class="col-auto">
+                <p style="margin-bottom: 7px;"><button type="button" class="btn btn-info btn-sm" id="register_user" title="Register New User">Register New User</button></p>
+                <p style="margin-bottom: 7px;"><button type="button" class="btn btn-info btn-sm" id="remove_user" title="Remove A User">Remove A User</button></p>
+            </div>
+            {% endif %}
+            <div class="col-auto">
+                <!-- Logout and go back to the login page -->
+                <p style="margin-bottom: 7px;"><button type="button" class="btn btn-info btn-sm" id="logout" title="Logout" onclick="logout()">Logout</button></p>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- View Test cases Form-->
+<div id="selectprojecttoview" class="modal fade">
+    <div class="modal-dialog">
+        <form method="post" id="viewprojectForm" action="{{ url_for('dashboard', projectName='', projectVersion='') | safe}}">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"></button>
+                    <h4 class="modal-title"><i class="fa fa-plus"></i>Select Project To Resume Review</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="projectSelector" class="control-label">Project Name</label>
+                        <select name="Project" id="projectSelector" class="form-control"  onchange="updateVersionOptions()" required>
+                            <option value="">Select Project</option>
+                            {% for project in projects %}
+                                <option value="{{project.project_name}}">{{project.project_name}}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="versionSelector" class="control-label">Project Version</label>
+                        <select name="Version" id="versionSelector" class="form-control" required>
+                            <option value selected disabled hidden>Select Version</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <input type="submit" name="viewproj" id="viewproj" value="viewproj" class="btn btn-info" />
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Resume new Project Review Form-->
+<div id="selectprojecttoresumereview" class="modal fade">
+    <div class="modal-dialog">
+        <form method="post" id="resumeprojectreviewForm" action="{{ url_for('dashboard', projectName='', projectVersion='') | safe}}">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"></button>
+                    <h4 class="modal-title"><i class="fa fa-plus"></i>Select Project To Resume Review</h4>
+                </div>
+                <div class="modal-body">
+                    <ul class="column-list scrollable-box" id="projectlist">
+                        <!-- Pre-populated columns -->
+                        {% for item in newproject_incomplete %}
+                        <li class="column-list-item">
+                            <span class="column-name">{{item.project_name}} v{{item.project_version}}</span>
+                          <div class="column-info">
+                            <span class="column-creationdate">Project Creation Date: {{item.creation_date}}</span>
+                            <!-- Hidden spans -->
+                            <span class="hiddenprojectid" id="project-id-{{item.project_id}}">{{item.project_id}}</span>
+                          </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div class="modal-footer">
+                    <input type="submit" name="continuereviewproj" id="continuereviewproj" value="continuereviewproj" class="btn btn-info" />
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="selectprojectresumeandhist" class="modal fade">
+    <div class="modal-dialog">
+        <form method="post" id="resumeandhistprojectForm" action="{{ url_for('resumeandhistproject', projectName='', projectVersion='') | safe}}">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"></button>
+                    <h4 class="modal-title"><i class="fa fa-plus"></i>Select Project To View Historical Test Case Data</h4>
+                </div>
+                <div class="modal-body">
+                    <ul class="column-list scrollable-box" id="projectlist">
+                        <!-- Pre-populated columns -->
+                        {% for item in closed_projects %}
+                        <li class="column-list-item">
+                            <span class="column-name">{{item.project_name}} v{{item.project_version}}</span>
+                          <div class="column-info">
+                            <span class="column-startdate">Start Date: {{item.start_date}}</span>
+                            <span class="column-enddate">End Date: {{item.end_date}}</span> <!-- New span for additional date -->
+                            <!-- Hidden spans -->
+                            <span class="hiddenprojectid" id="project-id-{{item.project_id}}">{{item.project_id}}</span>
+                            <span class="hiddentestcycleid" id="test-cycle-id-{{item.test_cycle_id}}">{{item.test_cycle_id}}</span>
+                          </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div class="modal-footer">
+                    <input type="submit" name="Selecthistproj" id="Selecthistproj" value="Selecthistproj" class="btn btn-info" />
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!--Resume test cycle Form-->
+<div id="select_test_cycle_to_run_or_resume" class="modal fade">
+    <div class="modal-dialog">
+        <form method="post" id="resume_or_run_test_cycle_form" action="{{ url_for('dashboardrun', projectName='', projectVersion='') | safe}}">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"></button>
+                    <h4 class="modal-title"><i class="fa fa-plus"></i>Select Project To View Historical Test Case Data</h4>
+                </div>
+                <div class="modal-body">
+                    <ul class="column-list scrollable-box" id="projectlist">
+                        <!-- Pre-populated columns -->
+                        {% for item in running_cycles %}
+                        <li class="column-list-item">
+                            <div class="project-and-test-cycle-id-container">
+                                <span class="column-project-name-version">Project: {{item.project_name}} v{{item.project_version}}</span>
+                                <span class="test-cycle-id">Test Cycle ID: {{item.test_cycle_id}}</span>
+                            </div>
+                              <div class="column-info">
+                                <span class="column-startdate">Start Date: {{item.start_date}}</span>
+                                <!-- Hidden spans -->
+                                <span class="hiddenprojectid" id="project-id-{{item.test_cycle_id}}">{{item.project_id}}</span>
+                                <span class="hiddentestcycleid" id="test-cycle-id-{{item.test_cycle_id}}">{{item.test_cycle_id}}</span>
+                              </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div class="modal-footer">
+                    <input type="submit" name="RunResumeHistCycle" id="RunResumeHistCycle" value="RunResumeHistCycle" class="btn btn-info" />
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Resume new Project Review Form-->
+<div id="selectprojecttodelete" class="modal fade">
+    <div class="modal-dialog">
+        <form method="post" id="deleteprojectForm" action="{{ url_for('delete_project', projectName='', projectVersion='') | safe}}">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"></button>
+                    <h4 class="modal-title"><i class="fa fa-plus"></i>Select Project To Delete</h4>
+                </div>
+                <div class="modal-body">
+                    <ul class="column-list scrollable-box" id="projectlist">
+                        <!-- Pre-populated columns -->
+                        {% for item in all_projects %}
+                        <li class="column-list-item">
+                            <span class="column-name">{{item.project_name}} v{{item.project_version}}</span>
+                          <div class="column-info">
+                            <span class="column-creationdate">Project Creation Date: {{item.creation_date}}</span>
+                            <!-- Hidden spans -->
+                            <span class="hiddenprojectid" id="project-id-{{item.project_id}}">{{item.project_id}}</span>
+                          </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div class="modal-footer">
+                    <input type="submit" name="deleteproj" id="deleteproj" value="deleteproj" class="btn btn-danger" />
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Custom Delete Project Confirmation Box, this will be called when user wants to delete a project, it is a second confirmation -->
+<div id="deleteProjectConfirmationBox" class="modal fade">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-body">
+                <p id="deleteProjectConfirmationMessage">Deleting the project will also delete every table of the project containing test cases permanently. Are you sure you want to proceed?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" id="confirmDeleteProject">Delete</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Custom Delete Test cycleConfirmation Box, this will be called when user wants to delete a test cycle, it is a second confirmation -->
+<div id="deleteTestCycleConfirmationBox" class="modal fade">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-body">
+                <p id="deleteTestCycleconfirmationMessage">Deleting the project will also delete every table of the project containing test cases permanently. Are you sure you want to proceed?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" id="confirmDeleteTestCycle">Delete</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create New User Form -->
+<div id="CreateNewUser" class="modal fade">
+		<div class="modal-dialog">
+			<form method="post" id="newUserForm" action="{{ url_for('register_new_user')}}">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h4 class="modal-title"><i class="fa fa-plus"></i>Add New User</h4>
+					</div>
+					<div class="modal-body">
+
+						<div class="form-group">
+							<label for="new_username" class="control-label">User Name</label>
+							<input type="text" name="new_username" id="new_username" autocomplete="off" class="form-control" placeholder="Username Should Be xFlow's Registered Employee Name" required/>
+						</div>
+
+						<div class="form-group">
+							<label for="new_password" class="control-label">New Password</label>
+							<input type="password" class="form-control" id="new_password" name="new_password" placeholder="Enter Password" required>
+						</div>
+
+                        <div class="form-group">
+							<label for="reenter_password" class="control-label">Re-enter Password</label>
+							<input type="password" class="form-control" id="reenter_password" name="reenter_password" placeholder="Enter Password Again" required>
+                        </div>
+					</div>
+					<div class="modal-footer">
+						<input type="submit" name="AddUser" id="AddUser" class="btn btn-info" value="AddUser" />
+						<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+					</div>
+				</div>
+			</form>
+		</div>
+	</div>
+
+<!-- Remove a user form-->
+<div id="select_user_to_remove" class="modal fade">
+    <div class="modal-dialog">
+        <form method="post" id="remove_user_form" action="#">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"></button>
+                    <h4 class="modal-title"><i class="fa fa-plus"></i>Select A User To Remove</h4>
+                </div>
+                <div class="modal-body">
+                    <ul class="column-list scrollable-box" id="userslist">
+                        <!-- Pre-populated columns -->
+                        {% if users is not none %}
+                            {% for user in users %}
+                            <li class="column-list-item">
+                                <span class="column-name">{{user.username}}</span>
+                            </li>
+                            {% endfor %}
+                        {% endif %}
+                    </ul>
+                </div>
+                <div class="modal-footer">
+                    <input type="submit" name="removeuser" id="removeuser" value="removeuser" class="btn btn-info" />
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Delete a Test Cycle form. Only for 'admin' user -->
+<div id="select_test_cycle_to_delete" class="modal fade">
+    <div class="modal-dialog">
+        <form method="post" id="delete_test_cycle_form" action="{{ url_for('index') | safe}}">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"></button>
+                    <h4 class="modal-title"><i class="fa fa-plus"></i>Select Test Cycle To Delete</h4>
+                </div>
+                <div class="modal-body">
+                    <ul class="column-list scrollable-box" id="testcycleslist">
+                        <!-- Pre-populated columns -->
+                        {% for item in running_cycles %}
+                        <li class="column-list-item">
+                            <div class="project-and-test-cycle-id-container">
+                                <span class="column-project-name-version">Project: {{item.project_name}} v{{item.project_version}}</span>
+                                <span class="test-cycle-id">Test Cycle ID: {{item.test_cycle_id}}</span>
+                            </div>
+                              <div class="column-info">
+                                <span class="column-startdate">Start Date: {{item.start_date}}</span>
+                                <!-- Hidden spans -->
+                                <span class="hiddenprojectid" id="project-id-{{item.test_cycle_id}}">{{item.project_id}}</span>
+                                <span class="hiddentestcycleid" id="test-cycle-id-{{item.test_cycle_id}}">{{item.test_cycle_id}}</span>
+                              </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div class="modal-footer">
+                    <input type="submit" name="deleteTestCycle" id="deleteTestCycle" value="deleteTestCycle" class="btn btn-info" />
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Define 'closed_projects' in the script tag
+    var closed_projects = {{ closed_projects | tojson  | safe }};
+    var projects = {{ projects | tojson  | safe }};
+
+    // Update form action with selected values on form submission
+    $("#Select").click(function(event) {
+        event.preventDefault();
+
+        var selectedProject = $("#projectSelect").val();
+        var selectedVersion = $("#versionSelect").val();
+
+        if (!selectedProject || !selectedVersion) {
+            alert('Please Select Both The Project name And Its Version');
+            return true;
+        }
+
+        // Ask user If He Is Sure If He Wants To Proceed
+         var userConfirmation = window.confirm("Are you sure you want to proceed?");
+         if (!userConfirmation) {
+            return true;
+         }
+
+        // Update form action with selected values as query parameters
+        var formAction = "addrunproject?projectName=&projectVersion=&project_startdate=&project_id=&createprojectmode=";
+        formAction = formAction.replace('projectName=', 'projectName=' + encodeURIComponent(selectedProject));
+        formAction = formAction.replace('projectVersion=', 'projectVersion=' + encodeURIComponent(selectedVersion));
+
+        $("#runprojectForm").attr('action', formAction);
+        $("#runprojectForm").submit();
+    });
+
+    $("#viewprojectForm").submit(function() {
+        var selectedProject = $("#projectSelector").val();
+        var selectedVersion = $("#versionSelector").val();
+
+        // Update form action with selected values as query parameters
+        var formAction = "{{ url_for('dashboard', projectName='', projectVersion='') | safe}}";
+        formAction = formAction.replace('projectName=', 'projectName=' + encodeURIComponent(selectedProject));
+        formAction = formAction.replace('projectVersion=', 'projectVersion=' + encodeURIComponent(selectedVersion));
+
+        $(this).attr('action', formAction);
+    });
+
+    // Logout and go to login page
+    function logout() {
+        // Ask user If He Is Sure If He Wants To logout
+         var userConfirmation = window.confirm("Are You Sure You Want To Logout?");
+         if (userConfirmation) {
+            url = '/logout'
+            window.location.href = url;
+         }
+    }
+</script>

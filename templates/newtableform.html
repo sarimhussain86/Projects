@@ -1,0 +1,1005 @@
+<html>
+
+<head>
+  <script src="{{ url_for('static',filename='js/projectversion.js') }}"></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <style>
+    .scrollable-box {
+      /*width: 300px;*/ /* Adjust the width as needed */
+      height: 200px; /* Adjust the height as needed */
+      overflow-y: auto; /* Enable vertical scrollbar when needed */
+      border: 1px solid #ccc; /* Optional: Add a border for styling */
+    }
+
+    /* Style for the lists */
+    ul {
+      list-style-type: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    li {
+      padding: 8px;
+      border-bottom: 1px solid #ddd; /* Optional: Add a border between items for styling */
+    }
+
+    h2 {
+      text-align: center; /* Center the text */
+    }
+
+    .form-container {
+      width: 80%;
+      margin: 0 auto;
+      padding: 0px 20px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    .form-group {
+      margin-bottom: 10px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+    }
+    input[type="text"], select {
+      width: 100%;
+      padding: 8px;
+      margin-top: 4px;
+      margin-bottom: 8px;
+      display: inline-block;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+    input[type="number"] {
+      width: 160px;
+    }
+    button, input[type="submit"] {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-bottom: 10px;
+    }
+    .column-lista,
+    .column-listb {
+      list-style-type: none;
+      padding: 0;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    .column-list-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px;
+      border-bottom: 1px solid #ccc;
+      transition: background-color 0.3s;
+    }
+
+    .column-list-item:last-child {
+      border-bottom: none;
+    }
+
+    .column-list-item:hover {
+      background-color: #f0f0f0;
+    }
+
+    .column-name {
+      font-weight: bold;
+      margin-right: 10px;
+    }
+
+    .column-type {
+      color: #666;
+    }
+
+    .column-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .selected {
+      background-color: #4CAF50;
+      color: white;
+    }
+    .move-buttons {
+      margin-bottom: 10px;
+    }
+    .button-containera {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 10px;   /* Add some top margin for spacing */
+    }
+    .button-containerb, .button-containerfirst {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 10px;   /* Add some top margin for spacing */
+    }
+    .button-containerb button {
+      margin-left: 5px; /* Adjust the margin to your desired spacing */
+    }
+
+    .item-container {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 40px;
+    }
+
+    .item-list, .selected-items {
+        width: 48%;
+        max-height: 150px;
+        border-radius: 4px;
+        box-sizing: border-box;
+    }
+
+    .select-container {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 20px;
+    }
+
+    .select-container select {
+        width: 48%;
+        box-sizing: border-box;
+        margin-right: 10px;
+    }
+
+    button:hover {
+        background-color: #45a049;
+    }
+
+     #leftItems::-webkit-scrollbar,
+     #rightItems::-webkit-scrollbar {
+        width: 16px;
+      }
+
+      #leftItems::-webkit-scrollbar-track,
+      #rightItems::-webkit-scrollbar-track {
+        border-radius: 8px;
+        background-color: #e7e7e7;
+        border: 1px solid #cacaca;
+      }
+
+      #leftItems::-webkit-scrollbar-thumb,
+      #rightItems::-webkit-scrollbar-thumb {
+        border-radius: 8px;
+        border: 3px solid transparent;
+        background-clip: content-box;
+        background-color: #d55959;
+      }
+  </style>
+</head>
+
+<body>
+  <div class="form-container">
+    <h2>Add New Tables</h2>
+    <form>
+    <!-- Initially, only the following template will be displayed -->
+      <div class="form-group">
+        <!-- Based on the values selected from the following, the relevant html template will be displayed -->
+        <label for="copyOrCreateTable">Do You Want To Create A New Table Or Copy Test Cases From An Existing Project?</label>
+          <select id="copyOrCreateTable" onchange="copy_or_create_table()">
+              <option value="" selected disabled hidden>Select An Option</option>
+            <!-- "div class="create new table template"" will be displayed if the following is selected -->
+              <option value='create_new_table'>Create New Table</option>
+            <!-- <div class="copy tables from existing project template"" will be displayed if the following is selected -->
+              <option value='copy_tables_from_existing_project'>Copy Tables From Existing Project</option>
+          </select>
+          <div class="button-containerfirst">
+        <!-- Window will close upon clicking on cancel -->
+            <button type="button" onclick="closeCreateTableWindow()">Cancel</button>
+          </div>
+      </div>
+
+      <!--  if 'Create New Table' selected -->
+      <div class="create new table template" style="display: none;">
+        <div class="form-group">
+          <label for="tableName">Table Name:</label>
+          <input type="text" id="tableName" name="tableName">
+          <div id="versionErrorMessageNewTableForm" style="color: red; font-size: 14px; margin-bottom: 15px;"></div>
+        </div>
+        <div id="tempselect" class="form-group">
+          <label for="templateselect" class="control-label">Template</label>
+          <select name="templateselect" id="templateselect" class="form-control" onchange="selecttemplate()">
+              <option value="" SELECTED DISABLED>Select Template</option>
+              <option value="Standard">Standard</option>
+              <option value="UserDefined">User Defined</option>
+          </select>
+        </div>
+
+
+        <div id="column_containera" class="form-group" style="display: none;">
+          <!-- List to display generated columns -->
+          <ul class="column-lista scrollable-box" id="columnLista">
+            <!-- Pre-populated columns -->
+            <li class="column-list-item">
+                <span class="column-name">Test Case ID</span>
+              <div class="column-info">
+                <span class="column-type">Paragraph</span>
+                
+              </div>
+            </li>
+            <li class="column-list-item">
+                <span class="column-name">Test Case Type</span>
+              <div class="column-info">
+                <span class="column-type">Paragraph</span>
+                
+              </div>
+            </li>
+            <li class="column-list-item">
+                <span class="column-name">Test Case Description</span>
+              <div class="column-info">
+                <span class="column-type">Paragraph</span>
+                
+              </div>
+            </li>
+            <li class="column-list-item">
+                <span class="column-name">Prerequisites</span>
+              <div class="column-info">
+                <span class="column-type">Paragraph</span>
+                
+              </div>
+            </li>
+            <li class="column-list-item">
+                <span class="column-name">Steps To Execute</span>
+              <div class="column-info">
+                <span class="column-type">Paragraph</span>
+                
+              </div>
+            </li>
+            <li class="column-list-item">
+                <span class="column-name">Expected Result</span>
+              <div class="column-info">
+                <span class="column-type">Paragraph</span>
+                
+              </div>
+            </li>
+            <li class="column-list-item">
+                <span class="column-name">Actual Result</span>
+              <div class="column-info">
+                <span class="column-type">Paragraph</span>
+                
+              </div>
+            </li>
+            <li class="column-list-item">
+                <span class="column-name">Remarks</span>
+              <div class="column-info">
+                <span class="column-type">Paragraph</span>
+              </div>
+            </li>
+          </ul>
+        </div>
+
+        <div class="create_columns_or_add_headers_from_csv" style="display: none;">
+            <label for="create_or_add_from_csv" class="control-label">Do You Want to Create Columns Or Add Column Headers From CSV File?</label>
+            <select name="categoryTypeSelect" id="create_or_add_from_csv" class="form-control" onchange="add_csv_headers_or_create_columns()">
+                <option value="" SELECTED DISABLED HIDDEN>Select Option</option>
+                <option value="create_columns">Create Columns</option>
+                <option value="add_csv_headers">Add Headers From CSV</option>
+            </select>
+        </div>
+        <div id="column_containerb" class="form-group" style="display: none;">
+          <!-- List to display generated columns -->
+          <ul class="column-listb scrollable-box" id="columnListb">
+            <li class="column-list-item">
+                <span class="column-name">Test Case ID</span>
+              <div class="column-info">
+                <span class="column-type">Paragraph</span>
+                
+              </div>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Edit and Remove buttons -->
+        <div class="edit-remove-buttons" style="display: none;">
+          <button type="button" onclick="moveColumn('up')">Move Up</button>
+          <button type="button" onclick="moveColumn('down')">Move Down</button>
+          <button type="button" onclick="editColumn()">Edit</button>
+          <button type="button" onclick="removeColumn()" style="background-color: #D94C3E;">Remove</button>
+        </div>
+
+
+        <div class="upload_window" style="display: none;">
+            <!-- This has been made a form to include "enctype="multipart/form-data" part that lets user print
+            full path for the file. Otherwise, fullpath will not be shown if only input is used.
+            When any CSV file is selected from the computer, the function show_csv_headers_list() will be called
+             to fetch the headers from the CSV and display it in a list. -->
+            <form method="post" enctype="multipart/form-data">
+                <input type="file" name="csv_file" id="csv_file" onchange="show_csv_headers_list()">
+            </form>
+        </div>
+        <div id="column_containerc" class="form-group" style="display: none;">
+            <ul class="column-listc scrollable-box" id="columnListc">
+
+          </ul>
+        </div>
+
+          <!-- Edit and Remove buttons -->
+        <div class="edit-button-for-column-containerc" style="display: none;">
+          <button type="button" onclick="editColumn()">Edit</button>
+        </div>
+
+        <div class="form-group" id="AddEdit_header_inputs" style="display: none;">
+          <label for="column1Name">Column Name:</label>
+          <input type="text" id="column1Name" name="column1Name">
+          <select id="column1Type" name="column1Type">
+            <option value="" selected hidden disabled>Select Column Data Type</option>
+            <option value="Paragraph">Paragraph</option>
+            <option value="Number">Number</option>
+          </select>
+          <button type="button" onclick="confirmColumn(1)">Confirm</button>
+          <button type="button" onclick="CancelColumn(1)" style="background-color: #D94C3E;">Cancel</button>
+        </div>
+
+        <div class="button-containera" style="display: none;">
+          <button type="button" onclick="addColumn()">Add Column</button>
+        </div>
+        <div class="button-containerb">
+          <button type="button" onclick="createTable()">Create Table</button>
+          <button type="button" onclick="closeCreateTableWindow()">Cancel</button>
+        </div>
+      </div>
+
+      <!--  if 'Copy Tables From Existing Project' selected -->
+      <div class="copy tables from existing project template" style="display: none;">
+          <!-- Select project and its version to copy test cases from -->
+        <div class="select-container">
+              <label for="projectSelector" style="margin-right:2px;">Select Project to Copy Test Cases:</label>
+              <select id="projectSelector" onchange="updateVersionOptions()">
+                  <option value="" selected disabled hidden>Select Project</option>
+                  {% for project in projects %}
+                  <option value={{project.project_name}}>{{project.project_name}}</option>
+                  {% endfor %}
+              </select>
+              <!-- <select id="versionSelector"> -->
+              <select id="versionSelector" onchange="updateAvailableItems()">
+                  <option value="" selected disabled hidden>Select Version</option>
+              </select>
+          </div>
+          <!-- Table names of the selected project and its version from the dropdown above will be displayed in the left box -->
+          <div class="item-container">
+              <div class="item-list">
+                  <label for="leftItems">Tables:</label>
+                  <select id="leftItems" multiple size="5" onclick="copyTableName('leftItems', 'rightItems')"></select>
+              </div>
+
+            <!-- Tables selected from left box will be displayed here, these will be tables that will be copied -->
+              <div class="selected-items">
+                  <label for="rightItems">Selected Tables:</label>
+                  <select id="rightItems" multiple size="5" onclick="removeTableName('leftItems', 'rightItems')"></select>
+              </div>
+          </div>
+          <div class="button-containerb">
+              <button type="button" onclick="createTable()">Add Tables</button>
+              <button type="button" onclick="closeCreateTableWindow()">Cancel</button>
+            </div>
+        </div>
+    </form>
+  </div>
+</body>
+  <script>
+    var closed_projects = {{ closed_projects | tojson | safe }};
+
+    var projects = {{ projects | tojson | safe }};
+
+    var project_tables_info = {{ project_tables_info | tojson | safe }};
+
+    var user = {{ user | tojson | safe }};
+
+    // Define a global variable to store the list of dictionaries
+    var itemsList = [];
+    var selectedTablesDicts = [];
+
+    // This function changes displays the relevant template based on the values selected from the first dropdown.
+    function copy_or_create_table() {
+       document.querySelector('.button-containerfirst').style.display = 'none';
+       var copyTestCases = document.getElementById('copyOrCreateTable').value;
+       if (copyTestCases == 'copy_tables_from_existing_project') {
+         document.querySelector('.copy.tables.from.existing.project.template').style.display = 'block';
+         document.querySelector('.create.new.table.template').style.display = 'none';
+         document.getElementById('AddEdit_header_inputs').style.display = 'none';
+       }
+       else {
+            // Only 'admin' user can create tables or import from csv, others will only use standard template
+            if (user == 'admin') {
+                document.querySelector('.copy.tables.from.existing.project.template').style.display = 'none';
+                document.querySelector('.create.new.table.template').style.display = 'block';
+                document.getElementById('tempselect').style.display = 'block';
+                document.getElementById('AddEdit_header_inputs').style.display = 'none';
+            }
+            // The standard template will be displayed directly for all except 'admin' user
+            else {
+                document.querySelector('.copy.tables.from.existing.project.template').style.display = 'none';
+                document.querySelector('.create.new.table.template').style.display = 'block';
+                document.getElementById('tempselect').style.display = 'none';
+                document.getElementById('column_containera').style.display = 'block';
+                document.getElementById('column_containerb').style.display = 'none';
+                document.querySelector('.edit-remove-buttons').style.display = 'none';
+                document.querySelector('.edit-button-for-column-containerc').style.display = 'none';
+                document.querySelector('.button-containera').style.display = 'none';
+                document.querySelector('.create_columns_or_add_headers_from_csv').style.display = 'none';
+                document.getElementById('AddEdit_header_inputs').style.display = 'none';
+            }
+       }
+    }
+
+    // This will be assigned either 'edit' or 'add' when adding or editing a column for creating user-defined table
+    var editoradd;
+
+    // Add event listener to validate that table name added in input is not taken by any table in any project
+    tableName.addEventListener('input', function () {
+        var tableNameErrorMessage = document.getElementById('versionErrorMessageNewTableForm');
+        const tableName = document.getElementById('tableName').value;
+
+        tableNameErrorMessage.textContent = '';
+        // Show error if the name has been taken
+        if (project_tables_info.includes(tableName.toLowerCase())) {
+            tableNameErrorMessage.textContent = 'The table name has been taken, please insert another name';
+        } else {
+            tableNameErrorMessage.textContent = '';
+        }
+    });
+
+    function selecttemplate() {
+        // Gets the result of the actual result dropdown menu
+        var template = document.getElementById('templateselect').value;
+
+        if (template == 'Standard') {
+            document.getElementById('column_containera').style.display = 'block';
+            document.getElementById('column_containerb').style.display = 'none';
+            document.querySelector('.edit-remove-buttons').style.display = 'none';
+            document.querySelector('.upload_window').style.display = 'none';
+            document.getElementById('column_containerc').style.display = 'none';
+            document.querySelector('.edit-button-for-column-containerc').style.display = 'none';
+            document.querySelector('.button-containera').style.display = 'none';
+
+            // The following "create_columns_or_add_headers_from_csv" is a div and in this div we have a dropdown
+            // "select" object 'create_or_add_from_csv'. We have to make sure that its value is "" whenever it gets
+            // hidden
+            document.querySelector('.create_columns_or_add_headers_from_csv').style.display = 'none';
+            document.getElementById('create_or_add_from_csv').value = '';
+
+            document.getElementById('AddEdit_header_inputs').style.display = 'none';
+
+        }
+        else {
+            document.getElementById('column_containera').style.display = 'none';
+            document.querySelector('.create_columns_or_add_headers_from_csv').style.display = 'block';
+            document.getElementById('AddEdit_header_inputs').style.display = 'none';
+        }
+    }
+
+    function add_csv_headers_or_create_columns() {
+        var columns_create_or_add_from_csv = document.getElementById('create_or_add_from_csv').value;
+
+        if (columns_create_or_add_from_csv == "add_csv_headers") {
+            // the div "upload_window" has a csv input field 'csv_file' that gets column headers froma csv file.
+            // whenever its display changes, we have to empty its value
+            document.querySelector('.upload_window').style.display = 'block';
+            // Clear the file input field
+            document.getElementById('csv_file').value = '';
+            document.getElementById('column_containerb').style.display = 'none';
+            document.querySelector('.edit-remove-buttons').style.display = 'none';
+            document.querySelector('.button-containera').style.display = 'none';
+            document.getElementById('column_containerc').style.display = 'block';
+            document.getElementById('AddEdit_header_inputs').style.display = 'none';
+            document.querySelector('.edit-button-for-column-containerc').style.display = 'block';
+        }
+        else {
+            // the div "upload_window" has a csv input field 'csv_file' that gets column headers froma csv file.
+            // whenever its display changes, we have to empty its value
+            document.querySelector('.upload_window').style.display = 'none';
+            // Clear the file input field
+            document.getElementById('csv_file').value = '';
+            document.getElementById('column_containera').style.display = 'none';
+            document.getElementById('column_containerb').style.display = 'block';
+            document.querySelector('.edit-button-for-column-containerc').style.display = 'none';
+            document.querySelector('.edit-remove-buttons').style.display = 'block';
+            document.querySelector('.button-containera').style.display = 'block';
+            document.getElementById('column_containerc').style.display = 'none';
+            document.getElementById('AddEdit_header_inputs').style.display = 'none';
+        }
+    }
+
+    // This function will fetch the CSV headers from the selected CSV file in the function 'get_csv_headers' in main.py
+    function show_csv_headers_list() {
+        document.getElementById('column_containerc').style.display = 'block';
+        var file_input = document.getElementById('csv_file');
+        var columnsList = document.getElementById('columnListc');
+
+        // Clear the current items in the left box
+        columnsList.innerHTML = '';
+
+        // Retrieve the selected file
+        var file = file_input.files[0];
+
+        var formData = new FormData();
+        formData.append('csv_file', file);
+
+
+        // Make an asynchronous request to fetch items based on the selected project
+        fetch('/get_csv_headers', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if ('error' in data) {
+				alert(data.error);
+			} else {
+                data.column_headers.forEach(header => {
+                    var listItem = document.createElement('li');
+                    listItem.className = 'column-list-item';
+                    listItem.innerHTML = `<span class="column-name">${header}</span><div class="column-info"><span class="column-type">Paragraph</span></div>`;
+                    columnsList.appendChild(listItem);
+                });
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    }
+
+    function editColumn() {
+      editoradd = 'edit';
+
+      const selectedColumn = document.querySelector('.column-list-item.selected');
+
+      if (!selectedColumn) {
+        alert('Select a column first.');
+        return;
+      }
+
+      // Get the column name (e.g., 'a', 'b')
+      const columnName = selectedColumn.querySelector('.column-name').textContent.trim();
+      const columnType = selectedColumn.querySelector('.column-type').textContent.trim();
+
+      if (columnName == 'Test Case ID') {
+        alert('"Test Case ID" is a Default Column and Cannot be Editted');
+        return;
+      }
+      // Set the column name and column type in the input field of AddEdit_header_inputs template
+      document.getElementById('column1Name').value = columnName;
+      document.getElementById('column1Type').value = columnType;
+
+      // Show the AddEdit_header_inputs template
+      document.getElementById('AddEdit_header_inputs').style.display = 'block';
+    }
+
+    function removeColumn() {
+      const selectedColumn = document.querySelector('.column-list-item.selected');
+      //to get the span items for the selected columns
+      //const columnNameSpan = selectedColumn.querySelector('.column-name');
+      //const columnTypeSpan = selectedColumn.querySelector('.column-type');
+      //const columnName = columnNameSpan.textContent.trim();
+      //const columnType = columnTypeSpan.textContent.trim();
+
+      if (!selectedColumn) {
+        alert('Select a column first.');
+        return;
+      }
+
+      // The 'Test Case ID' column is default and should not be deleted nor editted
+      const selectedcolumnName = selectedColumn.querySelector('.column-name').textContent.trim();
+      if (selectedcolumnName == 'Test Case ID') {
+        alert('"Test Case ID" is a Default Column and Cannot be Deleted');
+        return;
+      }
+
+      // Get the parent ul element (columnList)
+      const columnList = document.getElementById('columnListb');
+
+      // Remove the selected column from the list
+      columnList.removeChild(selectedColumn);
+
+      // Clear the selection
+      selectedColumn.classList.remove('selected');
+    }
+
+    function addColumn() {
+      editoradd = 'add';
+      document.getElementById('AddEdit_header_inputs').style.display = 'block';
+    }
+
+    function confirmColumn(columnNumber) {
+      if (editoradd == 'edit') {
+        const editedName = document.getElementById(`column1Name`).value;
+        const editedType = document.getElementById(`column1Type`).value;
+
+        // Find the corresponding list item
+        const selectedColumn = document.querySelector('.column-list-item.selected');
+
+        // Get the original name of the selected column to compare it with the edited name and make sure that duplicate
+        // error does not occur if the original column name and edited name are equal (the case when name is not edited)
+        const columnName = selectedColumn.querySelector('.column-name').textContent.trim();
+
+        // The below code ensures that the column names are not repeating when editting a column
+        const columnContainer = document.getElementById('column_containerb');
+
+        // querySelectorAll returns a NodeList, not an array. To use some, you need to convert the NodeList to an array
+        // before calling some. You can use the 'Array.from' method or the spread syntax to achieve this
+        const listItems = Array.from(columnContainer.querySelectorAll('.column-list-item'));
+        const hasDuplicate = listItems.some(item => {
+          const colName = item.querySelector('.column-name').textContent.trim();
+          if (colName.toLowerCase() == editedName.toLowerCase() && editedName.toLowerCase() != columnName.toLowerCase()) {
+            return true;
+          }
+          return false;
+        });
+
+        if (hasDuplicate) {
+          alert('Duplicate Names Are Not Allowed');
+          return
+        }
+
+        // Update the content of the list item with the edited values
+        selectedColumn.querySelector('.column-name').textContent = editedName;
+        selectedColumn.querySelector('.column-type').textContent = editedType;
+
+        // Hide the form fields
+        document.getElementById(`AddEdit_header_inputs`).style.display = 'none';
+      }
+
+      else {
+        const columnName = document.getElementById(`column${columnNumber}Name`).value;
+        const columnType = document.getElementById(`column${columnNumber}Type`).value;
+
+        if (!columnName) {
+          alert('Please Insert a Name For The New Column');
+          return
+        }
+
+        // The below code ensures that the column names are not repeating when adding a column
+        const columnContainer = document.getElementById('column_containerb');
+
+        // querySelectorAll returns a NodeList, not an array. To use some, you need to convert the NodeList to an array
+        // before calling some. You can use the 'Array.from' method or the spread syntax to achieve this
+        const listItems = Array.from(columnContainer.querySelectorAll('.column-list-item'));
+        const hasDuplicate = listItems.some(item => {
+          const colName = item.querySelector('.column-name').textContent.trim();
+          if (colName.toLowerCase() == columnName.toLowerCase()) {
+            return true;
+          }
+          return false;
+        });
+
+        if (hasDuplicate) {
+          alert('Duplicate Names Are Not Allowed');
+          return
+        }
+
+        if (!columnType) {
+          alert('Please Select Column Data Type');
+          return
+        }
+
+        else if (columnType == 'Short Text') {
+          if (!columnCharacters) {
+            alert('Please Specify The Number Of Characters For The Short Text');
+            return
+          }
+          else if (columnCharacters < 1) {
+            alert('The Number Of Characters Should Be Greater Than 0');
+            return
+          }
+        }
+
+        // Append the new column to the list
+        const columnList = document.querySelector('.column-listb');
+        const newColumn = document.createElement('li');
+        newColumn.className = 'column-list-item';
+        newColumn.innerHTML = `<span class="column-name">${columnName}</span><div class="column-info"><span class="column-type">${columnType}</span></div>`;
+        columnList.appendChild(newColumn);
+
+        // Reset the form and hide the template
+        document.getElementById(`column${columnNumber}Name`).value = '';
+        document.getElementById(`column${columnNumber}Type`).value = '';
+        document.getElementById(`AddEdit_header_inputs`).style.display = 'none';
+      }
+    }
+
+    function CancelColumn(columnNumber) {
+      document.getElementById(`AddEdit_header_inputs`).style.display = 'none';
+    }
+
+    function moveColumn(direction) {
+      const columnList = document.querySelector('.column-listb');
+      const selectedColumn = document.querySelector('.column-list-item.selected');
+
+      if (!selectedColumn) {
+        alert('Select a column first.');
+        return;
+      }
+
+      const index = Array.from(columnList.children).indexOf(selectedColumn);
+      const newIndex = direction === 'up' ? index - 1 : index + 1;
+
+      if (newIndex >= 0 && newIndex < columnList.children.length) {
+        columnList.insertBefore(selectedColumn, columnList.children[newIndex + (direction === 'up' ? 0 : 1)]);
+      }
+
+    }
+
+    function createTable() {
+      // Get the value of the table name input
+      const tableName = document.getElementById('tableName').value;
+
+      let templateType;
+      // If the user is not 'admin', then its template type for creating a new table will always be standard.
+      if (!(user === 'admin')) {
+        // Assign 'Standard' to templatetype if the user does not select option to copy test cases from existing projects.
+        if (document.querySelector('.copy.tables.from.existing.project.template').style.display == 'none') {
+        templateType = 'Standard';
+        }
+        // if the user does selects option to copy test cases from existing projects, the following will assign "" to
+        // templatetype.
+        else {
+            templateType = document.getElementById('templateselect').value;
+        }
+      }
+
+      // If the user is 'admin', then copy its template type.
+      else {
+        templateType = document.getElementById('templateselect').value;
+      }
+
+      //This is for the main function, If a new table is to be created, then the main will run the code for creating
+      // new table in the draft project. otherwise, tables from existing project will be added to the draft project.
+      // The values for "AddOrCreateTable" will be 'add' and 'create'.
+      let AddOrCreateTable;
+
+      if (document.querySelector('.copy.tables.from.existing.project.template').style.display == 'none') {
+        AddOrCreateTable = 'create';
+
+        // Retrieve list values
+        const columnListValues = [];
+
+        // Iterate over list items and push values to the array
+        let columnContainer;
+        if (document.getElementById('column_containera').style.display === 'block') {
+            columnContainer = document.getElementById('column_containera');
+        }
+        else if (document.getElementById('column_containerb').style.display === 'block') {
+            columnContainer = document.getElementById('column_containerb');
+        }
+
+        else {
+            columnContainer = document.getElementById('column_containerc');
+        }
+
+        const listItems = columnContainer.querySelectorAll('.column-list-item');
+        listItems.forEach(item => {
+            const columnName = item.querySelector('.column-name').textContent.trim();
+            const columnType = item.querySelector('.column-type').textContent.trim();
+
+            // Push values to the array
+            columnListValues.push({
+              columnName,
+              columnType,
+            });
+        });
+        var tablenameerrormessage = document.getElementById('versionErrorMessageNewTableForm');
+        if (!tableName) {
+            alert('Please fill in the Table Name.');
+            return; // Exit the function if validation fails
+        }
+
+        else if (tablenameerrormessage.textContent.length != 0) {
+            alert('The table name has been taken, please insert another name');
+            return;
+        }
+
+        else if (columnListValues.length < 2) {
+            alert('Please fill in the column list.');
+            return; // Exit the function if validation fails
+        }
+        // Send list values to the opener window
+        window.opener.postMessage({
+            AddOrCreateTable:AddOrCreateTable,
+            tableName: tableName,
+            templateType: templateType,
+            columnListValues: encodeURIComponent(JSON.stringify(columnListValues)),
+            selectedTables: selectedTables,
+            project_name: project_name,
+            project_version: project_version,
+            listOfLists: listOfLists,
+            selectedTablesDicts: 'nullvalue'
+        }, '*');
+      }
+
+      else {
+        AddOrCreateTable = 'add';
+        // Get the values of old project name and version from where to copy test cases
+        var project_name = document.getElementById('projectSelector').value;
+        var project_version = document.getElementById('versionSelector').value;
+
+        var rightItemsSelect = document.getElementById('rightItems');
+
+        if (rightItemsSelect.options.length == 0) {
+            alert('No Table Was Selected.');
+            return; // Exit the function if validation fails
+        }
+
+        // Ask for confirmation
+        var userConfirmation = window.confirm("Are you sure you want to proceed?");
+
+        // Check user's choice
+        if (userConfirmation) {
+            var selectedTables = [];
+            var rightItemsSelect = document.getElementById('rightItems');
+            for (var i = 0; i < rightItemsSelect.options.length; i++) {
+                selectedTables.push(rightItemsSelect.options[i].value);
+            }
+
+            // Convert each dictionary to a list of values
+            var listOfLists = selectedTablesDicts.map(function (dict) {
+              return Object.values(dict); // This will be an array of ['item', 'hiddenItem']
+            });
+        }
+        // Send list values to the opener window
+        window.opener.postMessage({
+            AddOrCreateTable:AddOrCreateTable,
+            tableName: tableName,
+            templateType: templateType,
+            columnListValues: 'nullvalue',
+            selectedTables: selectedTables,
+            project_name: project_name,
+            project_version: project_version,
+            listOfLists: listOfLists,
+            selectedTablesDicts: encodeURIComponent(JSON.stringify(selectedTablesDicts))
+        }, '*');
+      }
+
+      // Close the current window (optional)
+      window.close();
+    }
+
+    function closeCreateTableWindow() {
+      // Close the current window (optional)
+      window.close();
+    }
+
+    document.querySelector('.column-listb').addEventListener('click', function(e) {
+      // THis for editing purpose, if while editing a list item, user selects another item, then it will edit that
+      // item, to prevent it, do not allow items to be selected when the add or edit block is visible
+      if (document.getElementById(`AddEdit_header_inputs`).style.display == 'block') {
+        return;
+      }
+
+      // This code snippet makes the new item as selected and removes the old item as selected
+      if (e.target.matches('.column-list-item')) {
+        const selectedItems = document.querySelectorAll('.column-list-item.selected');
+        e.target.classList.add('selected');
+        selectedItems.forEach(item => item.classList.remove('selected'));
+      }
+    });
+
+    document.querySelector('.column-listc').addEventListener('click', function(e) {
+      // THis for editing purpose, if while editing a list item, user selects another item, then it will edit that
+      // item, to prevent it, do not allow items to be selected when the add or edit block is visible
+      if (document.getElementById(`AddEdit_header_inputs`).style.display == 'block') {
+        return;
+      }
+
+      // This code snippet makes the new item as selected and removes the old item as selected
+      if (e.target.matches('.column-list-item')) {
+        const selectedItems = document.querySelectorAll('.column-list-item.selected');
+        e.target.classList.add('selected');
+        selectedItems.forEach(item => item.classList.remove('selected'));
+      }
+    });
+
+    // This is called when existing project version is selected to fetch the tables of that project and stor
+    // it in the left items box
+    function updateAvailableItems() {
+        var projectSelect = document.getElementById('projectSelector');
+        var versionSelect = document.getElementById('versionSelector');
+        var leftItemsSelect = document.getElementById('leftItems');
+
+        // Clear the current items in the left box
+        leftItemsSelect.innerHTML = '';
+
+        // Retrieve the selected project name
+        var selectedProjectName = projectSelect.value;
+        var selectedVersionName = versionSelect.value;
+
+        // Make an asynchronous request to fetch items based on the selected project
+        fetch('/get_tables', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ project_name: selectedProjectName, version_name: selectedVersionName }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Update the list of dictionaries
+            itemsList = data.items.map((item, index) => ({
+                item: item,
+                hiddenItem: data.hidden_items[index]
+            }));
+            // Populate the left box with the fetched items
+            data.items.forEach(item => {
+                var option = document.createElement('option');
+                option.value = item;
+                option.text = item;
+                leftItemsSelect.add(option);
+            });
+        })
+        .catch(error => console.error('Error:', error));
+    }
+
+    // Copies table names from the left item box to the right item box (selects tables)
+    function copyTableName(sourceId, targetId) {
+        var sourceSelect = document.getElementById(sourceId);
+        var targetSelect = document.getElementById(targetId);
+
+        // loops through all the options in the left box
+        for (var i = 0; i < sourceSelect.options.length; i++) {
+            var option = sourceSelect.options[i];
+
+            if (option.selected) {
+                // Check if the selected item already exists in the target box
+                var existsInTarget = Array.from(targetSelect.options).some(function (targetOption) {
+                    return targetOption.value === option.value;
+                });
+
+                if (existsInTarget) {
+                    alert("Error: The selected table already exists in the right box.");
+                    return; // Stop further processing
+                }
+
+                // "project_tables_info" contains list of tables in the project in lower case. The below code gives
+                // error if the selected table name from the left box already exists in the current project
+                if (project_tables_info.includes(option.value.toLowerCase())) {
+                    alert("Error: The selected table already exists in project.");
+                    return; // Stop further processing
+                }
+
+                // Copy the selected item to the target box
+                targetSelect.add(new Option(option.text, option.value));
+
+                // Check if the item value matches any value of the key 'item' in itemsList
+                var matchingItem = itemsList.find(function (itemDict) {
+                    return itemDict.item === option.value;
+                });
+
+                if (matchingItem) {
+                    // Insert the matching dictionary into the 'selectedTablesDicts' list
+                    selectedTablesDicts.push(matchingItem);
+                }
+            }
+        }
+    }
+
+    // Copies table names from the right item box back to the left item box (unselects the tables)
+    function removeTableName(sourceId, targetId) {
+        var targetSelect = document.getElementById(targetId);
+
+        for (var i = 0; i < targetSelect.options.length; i++) {
+            var option = targetSelect.options[i];
+
+            if (option.selected) {
+                // Copy the selected item to the target box
+                targetSelect.remove(option.index);
+
+                // Find the dictionary in the 'selectedTablesDicts' list with item value equal to option value
+                var indexInX = selectedTablesDicts.findIndex(function (itemDict) {
+                    return itemDict.item === option.value;
+                });
+
+                if (indexInX !== -1) {
+                    // Remove the dictionary from the 'selectedTablesDicts' list
+                    selectedTablesDicts.splice(indexInX, 1);
+                }
+            }
+        }
+    }
+  </script>
+</html>

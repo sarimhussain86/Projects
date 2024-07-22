@@ -1,0 +1,85 @@
+<!-- For the 'tableDisplay' modal form 'select_csv_test_cases_form', where the selected rows' color should turn to green.
+	The modal is described in this file and opened through 'select_csv_file.js' script -->
+<style>
+	.selected-row {
+		background-color: #4CAF50;
+	}
+</style>
+{% include 'header.html' %}
+{% include 'table_cols_adjustment.html' %}
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<body>
+  <div class="container-fluid" id="main">
+	{% include 'top_menus.html' %}
+    <div class="row row-offcanvas row-offcanvas-left">
+	{% include 'left_menus_run.html' %}
+      <div class="col-md-9 col-lg-10 main">
+	  	<h2>Project:    {{project_name}} v{{projectVersion}}</h2>
+		<h3>Test Cases:	{{table_name}}</h3>
+			<div class="float-right mb-2 col-md-2" style="display: flex;">
+				<button type="button" id="add_test_cases_from_csv" data-columns="{{columns}}" data-table_name="{{table_name}}" data-project_id={{project_id}} data-exception="{{exception}}"  data-table_id={{table_id}} data-categorytype="{{ categoryType }}" data-categories="{{categories}}" data-category_id={{category_id}} data-test_cycle_id="{{test_cycle_id}}" data-last_test_case_id="{{last_test_case_id}}" data-createprojectmode="{{createprojectmode}}" class="btn btn-info" title="Add Test Cases From CSV" style="margin-right: 10px; width: 210px;"><span class="fas fa-plus">Add Test Cases From CSV</span></button>
+				<button type="button" id="addtestcase" data-columns="{{columns}}" data-table_name="{{table_name}}" data-project_id={{project_id}} data-exception="{{exception}}"  data-table_id={{table_id}} data-categorytype="{{ categoryType }}" data-categories="{{categories}}" data-category_id={{category_id}} data-test_cycle_id="{{test_cycle_id}}" data-last_test_case_id="{{last_test_case_id}}" data-createprojectmode="{{createprojectmode}}" class="btn btn-info" title="Add Test Case"><span class="fas fa-plus">Add Test Case</span></button>
+			</div>
+			<!-- If the table is new or has no rows, then the column headers will also be empty, so make sure that
+			  column headers are added to the table first, then adding new test case data will allow you to edit
+			 or delete test cases as well -->
+		  	{%if data|length == 0 %}
+		  		<p></p>
+		  	{% endif %}
+		  	{% for dats in data %}
+		  	{% set outer_index = loop.index0 %}
+			<br><br>
+				<!--data is a 3-dimensional tuple with a dictionary as its innermost value, dats is the inner tuple,
+				hence dats[0][0] accesses the dictionary-->
+			  	{% if dats[0][0]['category_id']|string in categories %}
+					<!--dats[0][0]['category_id']|string][1], 'category_id' key of dictionary has two values, first is the
+					category name and second is category type, type value of 0 indicates a module, 1 indicates a category-->
+					<!-- 'data-item' calls an event everytime h4 is created and sends the value written to it -->
+					<h4>{{ "Module" if categories[dats[0][0]['category_id']|string][1] == 0 else "Category" }}: {{categories[dats[0][0]['category_id']|string][0]}}</h4>
+			  	{% endif %}
+			{% for dat in dats %}
+		  <strong>{{notes[dat[0]['note_id']|string]}}</strong>
+			  {% if dat[0]['note_id'] in notes %}
+				<Strong style="font-size:14px;">{{item['note']}}</Strong>
+			  {% endif %}
+			<table id="resizeMe_{{outer_index}}_{{loop.index0}}" data-tid="resizeMe" class="table table-striped">
+			<thead>
+			  <tr>
+                  {% for col in columns %}
+				  {% if col != "ID" and col !="Note ID" and col !="Category ID" %}
+                    <th>{{col}}</th>
+				  {% endif %}
+                  {% endfor %}
+			  </tr>
+			</thead>
+			<tbody>
+		  	{% for da in dat %}
+			  <tr>
+			  	{% for f in field %}
+				  {% if f != "id" and f !="note_id" and f !="category_id" %}
+					<td>{{da[f]}}</td>
+				  {% endif %}
+			  	{% endfor %}
+				<td><button type="button" id="edittestcase{{da['id']}}" onclick="getrowid(this, {{da}}, {{field}}, {{columns}}, '{{ table_name }}', '{{exception}}', {{project_id}}, {{table_id}}, '{{category_id}}', {{last_test_case_id}}, {{createprojectmode}})" class="btn btn-primary">Edit</button></td>
+			  </tr>
+			{% endfor %}
+			</tbody>
+		  </table>
+		  {% endfor %}
+	  	{% endfor %}
+        <hr>
+	  	<div class="float-right mb-2 col-md-2">
+				<a href="{{url_for('FinalizeCreateProject', projectName=project_name, projectVersion=projectVersion, project_id=project_id)}}" onclick="return ConfirmFinalizeProject(this.href)" class="btn btn-primary">Submit</a>
+		</div>
+	  </div>
+  	</div>
+  </div>
+</body>
+
+<script>
+    // Define in the script tag or the js will not recognize the values received in this html
+    var closed_projects = {{ closed_projects | tojson  | safe }};
+    var categoryType = {{ categoryType | tojson  | safe }};
+    var categories = {{ categories | tojson  | safe }};
+    var last_test_case_id = {{ last_test_case_id | tojson  | safe }};
+</script>

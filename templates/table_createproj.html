@@ -1,0 +1,425 @@
+<!-- This HTML serves two purposes.
+ - It displays tables of a draft project
+ - It displays tables in create test cycle mode to create a new test cycle from the test cases of the selected draft project -->
+
+<!-- "selected-row" is added for two purposes:
+ - For the 'tableDisplay' modal form 'select_csv_test_cases_form', where the selected rows' color should turn to green.
+	The modal is described in this file and opened through 'select_csv_file.js' script.
+ - For Selecting test cases in create test cycle mode where user will select test cases to include in his new test cycle -->
+<style>
+	.selected-row {
+		background-color: #4CAF50;
+	}
+
+	/* Apply custom styling to selected rows */
+	table.table-striped tbody tr.selected-row td {
+		background-color: green; /* Change background color to green */
+		color: white; /* Change text color to white */
+	}
+</style>
+
+{% include 'header.html' %}
+{% include 'table_cols_adjustment.html' %}
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script src="{{ url_for('static',filename='js/newtestcase.js') }}"></script>
+<script src="{{ url_for('static',filename='js/edit_testcase_create_project.js') }}"></script>
+<script src="{{ url_for('static',filename='js/select_add_csv_file.js') }}"></script>
+<body>
+  <div class="container-fluid" id="main">
+	{% include 'top_menus.html' %}
+    <div class="row row-offcanvas row-offcanvas-left">
+	{% include 'left_menus_createproject.html' %}
+      <div class="col-md-9 col-lg-10 main">
+	  	<h2>Project:    {{project_name}} v{{projectVersion}}</h2>
+		<h3>Test Cases:	{{table_name}}</h3>
+		  {% if createprojectmode == 1 or createprojectmode == '1' %}
+			<div class="float-right mb-2 col-md-5" style="display: flex;">
+				<button type="button" id="add_test_cases_from_csv" data-columns="{{columns}}" data-table_name="{{table_name}}" data-project_id={{project_id}} data-exception="{{exception}}"  data-table_id={{table_id}} data-categorytype="{{ categoryType }}" data-categories="{{categories}}" data-category_id={{category_id}} data-test_cycle_id="{{test_cycle_id}}" data-last_test_case_id="{{last_test_case_id}}" data-createprojectmode="{{createprojectmode}}" class="btn btn-info" title="Add Test Cases From CSV" style="margin-right: 10px; width: 210px;"><span class="fas fa-plus">Add Test Cases From CSV</span></button>
+				<button type="button" id="addtestcase" data-columns="{{columns}}" data-table_name="{{table_name}}" data-project_id={{project_id}} data-exception="{{exception}}"  data-table_id={{table_id}} data-categorytype="{{ categoryType }}" data-modules ="{{ modules }}" data-categories="{{categories}}" data-category_id={{category_id}} data-test_cycle_id="{{test_cycle_id}}" data-last_test_case_id="{{last_test_case_id}}" data-test_case_ids="{{test_case_ids}}" data-createprojectmode="{{createprojectmode}}" class="btn btn-info" title="Add Test Case"><span class="fas fa-plus">Add Test Case</span></button>
+			</div>
+		  {% endif %}
+		  {% if CreateTestCycleMode == 1 or CreateTestCycleMode == '1' %}
+			<div class="float-right mb-2 col-md-2" style="display: flex;">
+				<button id="selectAllTestCases" onclick="handleSelectAll(this.id)" class="btn btn-info" style="width: 200px; margin-right:5px;">Select All Test Cases</button>
+				<button id="unselectAllTestCases" onclick="handleSelectAll(this.id)" class="btn btn-danger" style="width: 200px;">Unselect All Test Cases</button>
+			</div>
+		  {% endif %}
+			<!-- If the table is new or has no rows, then the column headers will also be empty, so make sure that
+			  column headers are added to the table first, then adding new test case data will allow you to edit
+			 or delete test cases as well -->
+		  	{%if data|length == 0 %}
+		  		<p></p>
+		  	{% endif %}
+		  	{% for dats in data %}
+		  	{% set outer_index = loop.index0 %}
+			<br><br>
+				<!--data is a 3-dimensional tuple with a dictionary as its innermost value, dats is the inner tuple,
+					hence dats[0][0] accesses the dictionary -->
+				<!-- Also in tables.html we have put only	"if dats[0][0]['module_id']|string != 'None'" nut here
+					 we have changed things a little because in function table_createproj() in main.py, we have replaced
+					 keys having None values with '' -->
+		  	{% if dats[0][0]['module_id']|string != '' %}
+				<!--dats[0][0]['category_id']|string][1], 'category_id' key of dictionary has two values, first is the
+				category name and second is category type, type value of 0 indicates a module, 1 indicates a category-->
+				<h4>Module: {{modules[dats[0][0]['module_id']|string]}}</h4>
+		  	{% elif dats[0][0]['category_id']|string != '' %}
+				<!--dats[0][0]['category_id']|string][1], 'category_id' key of dictionary has two values, first is the
+				category name and second is category type, type value of 0 indicates a module, 1 indicates a category-->
+				<h4>Category: {{categories[dats[0][0]['category_id']|string]}}</h4>
+		  	{% endif %}
+			{% for dat in dats %}
+		  <strong>{{notes[dat[0]['note_id']|string]}}</strong>
+			  {% if dat[0]['note_id'] in notes %}
+				<Strong style="font-size:14px;">{{item['note']}}</Strong>
+			  {% endif %}
+			<table id="resizeMe_{{outer_index}}_{{loop.index0}}" data-tid="resizeMe" class="table table-striped">
+			<thead>
+			  <tr>
+                  {% for col in columns %}
+				  {% if col != "ID" and col !="Module ID" and col !="Note ID" and col !="Category ID" and col !="Row ID" %}
+                    <th>{{col}}</th>
+				  {% endif %}
+                  {% endfor %}
+			  </tr>
+			</thead>
+			<tbody>
+		  	{% for da in dat %}
+				<!-- The inner if condition is for the CreateTestCycleMode mode. It checks if the row in the table was
+				selected then color it green. This is when after selecting, the user clicks on other table, the other
+				 table will be rendered so we need to keep a check of whether the row was selected in the table or not.
+				 If the table is rendered again, the test cases selected previously will be green again.-->
+			  <tr {% if CreateTestCycleMode == 1 or CreateTestCycleMode == '1' %} {% if da['row_id']|float > 0 %} class="selected-row" {% endif %} {% endif %} >
+			  	{% for f in field %}
+				  {% if f != "id" and f !="module_id" and f !="note_id" and f !="category_id" and f !="row_id" %}
+					<td>{{da[f]}}</td>
+				  {% endif %}
+			  	{% endfor %}
+				{% if CreateTestCycleMode == 1 or CreateTestCycleMode == '1' %}
+				  <td><input type="checkbox" id="select_test_case{{da['id']}}" data-test_case_id="{{da['test_case_id']}}" data-exception="{{exception}}" data-table_name="{{table_name}}" data-project_id={{project_id}} data-table_id={{table_id}} {% if da['row_id']|float > 0 %} checked {% endif %} /></td>
+				{% elif createprojectmode == 1 or createprojectmode == '1' %}
+					{% if user == 'admin' %}
+					  <td><button type="button" id="edittestcase{{da['id']}}" onclick="getrowid(this, {{da}}, {{field}}, {{columns}}, '{{ table_name }}', '{{exception}}', {{project_id}}, {{table_id}}, '{{category_id}}', {{last_test_case_id}}, {{createprojectmode}})" class="btn btn-primary">Edit</button></td>
+					  <td><a href="{{url_for('DeleteTestCase', row_id=da['id'], exception=exception, table_name=table_name, project_id=project_id, table_id=table_id, category_id=category_id, createprojectmode=createprojectmode)}}" onclick="return confirmDelete(this.href)" class="btn btn-danger">Delete</a></td>
+			  		{% endif %}
+				{% endif %}
+			  </tr>
+			{% endfor %}
+			</tbody>
+		  </table>
+		  {% endfor %}
+	  	{% endfor %}
+        <hr>
+<!--	  	<div class="float-right mb-2 col-md-2">-->
+<!--				<a href="{{url_for('FinalizeCreateProject', projectName=project_name, projectVersion=projectVersion, project_id=project_id)}}" onclick="return ConfirmFinalizeProject(this.href)" class="btn btn-primary">Submit</a>-->
+<!--		</div>-->
+	  </div>
+  	</div>
+  </div>
+</body>
+
+<div id="TestCaseModal" class="modal fade">
+    <div class="modal-dialog">
+        <form method="post" id="TestCaseForm" action="{{ url_for('AddEditTestCase', table_name=table_name, project_id=project_id, exception=exception, table_id=table_id,  category_id=category_id, test_cycle_id=test_cycle_id) | safe}}">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"></button>
+                    <h4 class="modal-title"><i class="fa fa-plus"></i>Add Test Case</h4>
+                </div>
+                <div class="modal-body">
+					{% for col in columns %}
+					{% if col != 'ID' and col !="Module ID" and col !="Note ID" and col !="Category ID" %}
+						{% if col == 'Test Case ID' %}
+							<div class="form-group" id="testcaseidinputs">
+								<!-- Each label should have a unique id, so we created it dynamically using index of for loop
+								 specified by 'loop.index0' -->
+								<label for="{{ field[loop.index0] }}" style="font-size: 14px;" class="control-label">{{col}}</label>
+								<input type="text" name="{{col}}" id="{{ field[loop.index0] }}" class="form-control" placeholder="{{col}}">
+							</div>
+							<div id="versionErrorMessageAddEditTestCaseForm" style="color: red; font-size: 14px; margin-bottom: 15px;"></div>
+
+							<!-- Dropdown menu for category -->
+							<div id="categoryDropdownDiv" class="form-group">
+								<label for="categoryss" style="font-size: 14px;" class="control-label">Category:</label>
+								<select name="Categoryss" id="categoryss" class="form-control"></select>
+							</div>
+
+							<!-- Dropdown menu for module -->
+							<div id="moduleDropdownDiv" class="form-group">
+								<label for="moduless" style="font-size: 14px;" class="control-label">Module:</label>
+								<select name="Moduless" id="moduless" class="form-control"></select>
+							</div>
+						{% elif col == "Actual Result" %}
+							<!-- Dropdown menu for Actual Result -->
+							<div id="actualresultDropdownDiv" class="form-group">
+								<label for="{{ field[loop.index0] }}" style="font-size: 14px;" class="control-label">{{col}}</label>
+								<select name="{{col}}" id="{{ field[loop.index0] }}" onchange="addtext()" class="form-control">
+									<option value="" selected disabled hidden>Select Actual Result</option>
+									<option value="Pass">Pass</option>
+									<option value="Fail">Fail</option>
+								</select>
+								<!-- The text area to type in reason for failure, will only be visible if user selects 'Fail' -->
+								<div class="form-group" id="reasonforfail" style="display: none; margin-top:15px;">
+									<label for="reason_for_fail" style="font-size: 14px;" class="control-label">Reason For Failure</label>
+									<textarea type="text" name="Reason For Fail" id="reason_for_fail" class="form-control" rows="5" placeholder="Reason For Failure"></textarea>
+								</div>
+							</div>
+						{% else %}
+							<div class="form-group">
+								<label for="{{ field[loop.index0] }}" style="font-size: 14px;" class="control-label">{{col}}</label>
+								<textarea type="text" name="{{col}}" id="{{ field[loop.index0] }}" class="form-control" rows="5" placeholder="{{col}}"></textarea>
+							</div>
+						{% endif %}
+					{% endif %}
+					{% endfor %}
+                </div>
+                <div class="modal-footer">
+                    <input type="submit" name="Add" id="Add" value="Add" class="btn btn-info" />
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Form To Upload Data From A CSV File, The JS Script That Designs The Form Is 'select_add_csv_file.js' -->
+<div id="select_csv_file_to_upload" class="modal fade">
+    <div class="modal-dialog">
+        <form id="upload_csv_form" method="post" enctype="multipart/form-data">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"></button>
+                    <h4 class="modal-title"><i class="fa fa-plus"></i>Choose CSV File To Upload</h4>
+                </div>
+                <div class="modal-body">
+                    <label for="csv_file">File:</label>
+                    <input type="file" id="csv_file" name="file">
+					<!-- Hidden items (For the purpose of using them in FormData only. FormData allows the data in the form only) -->
+					<input type="text" id="field" name="field" value="{{field}}" style="display: none;">
+					<input type="text" id="columns" name="columns" value="{{columns}}" style="display: none;">
+					<input type="text" id="empty_table" name="empty_table" value="" style="display: none;">
+					<input type="text" id="categoryType" name="categoryType" value="" style="display: none;">
+
+                </div>
+                <div class="modal-footer">
+					<button type="button" name="upload_csv" id="upload_csv" value="upload_csv" class="btn btn-info" onclick="import_csv_rows()">Upload CSV</button>
+					<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="tableDisplay" class="modal fade">
+	<div class="modal-dialog">
+		<form method="post" id="select_csv_test_cases_form" action="#">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"></button>
+                    <h4 class="modal-title"><i class="fa fa-plus"></i>Select Test Cases To Add</h4>
+                </div>
+                <div class="modal-body">
+					<button id="formSelectAllTestCases" onclick="formHandleSelectAll(event, this.id)" class="btn btn-info" style="width: 200px; margin-right:5px;">Select All Test Cases</button>
+					<button id="formUnselectAllTestCases" onclick="formHandleSelectAll(event, this.id)" class="btn btn-danger" style="width: 200px;">Unselect All Test Cases</button>
+                    <!-- CSV Table will be dynamically added here -->
+                </div>
+                <div class="modal-footer">
+                    <input type="submit" name="add_csv_test_cases" id="add_csv_test_cases" value="add_csv_test_cases" class="btn btn-info" />
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </form>
+	</div>
+</div>
+
+<script>
+    // Define in the script tag or the js will not recognize the values received in this html
+    var closed_projects = {{ closed_projects | tojson  | safe }};
+    var categoryType = {{ categoryType | tojson  | safe }};
+    var categories = {{ categories | tojson  | safe }};
+    var modules = {{ modules | tojson  | safe }};
+    var last_test_case_id = {{ last_test_case_id | tojson  | safe }};
+    var test_case_ids = {{ test_case_ids | tojson  | safe }};
+    var columns = {{ columns | tojson  | safe }};
+    var field = {{ field | tojson  | safe }};
+	table_name = {{ table_name | tojson  | safe }};
+	table_id = {{ table_id | tojson  | safe }};
+	exception = {{ exception | tojson  | safe }};
+	project_id = {{ project_id | tojson  | safe }};
+	exception = {{ exception | tojson  | safe }};
+	category_id = {{ category_id | tojson  | safe }};
+	createprojectmode = {{ createprojectmode | tojson  | safe }};
+
+	function confirmDelete(deleteUrl) {
+		// Ask for user confirmation
+		var isConfirmed = window.confirm("Are you sure you want to delete?");
+
+		// Check the user's response
+		if (isConfirmed) {
+			// User clicked "OK", proceed with the deletion by navigating to the URL
+			window.location.href = deleteUrl;
+		} else {
+			// User clicked "Cancel", do nothing or handle accordingly
+			return false;
+		}
+	}
+
+	function ConfirmFinalizeProject(deleteUrl) {
+		// Ask for user confirmation
+		var isConfirmed = window.confirm("Are you sure you have completed your review?");
+
+		// Check the user's response
+		if (isConfirmed) {
+			// User clicked "OK", proceed with the deletion by navigating to the URL
+			window.location.href = deleteUrl;
+		} else {
+			// User clicked "Cancel", do nothing or handle accordingly
+			return false;
+		}
+	}
+
+	// Called from the form 'upload_csv_form' when the user selects a CSV from his computer and clicks on 'Upload CSV'
+	function import_csv_rows() {
+		var file_input = document.getElementById('csv_file');
+		var fieldv = document.getElementById('field').value;
+		var columnsv = document.getElementById('columns').value;
+
+        // Retrieve the selected file name
+        var file = file_input.files[0];
+
+        // Select the <thead> element
+		var tableHeaders = document.querySelector('thead');
+
+		var empty_table = 0;
+
+		// This will be the case if there is no data in the table (or if the table is newly created)
+		if (tableHeaders === null) {
+			empty_table = 1;
+		}
+
+		//var formData = ([('csv_file', file), ('field', field), ('columns', columns)]);
+        var formData = new FormData();
+        formData.append('csv_file', file);
+        formData.append('field', fieldv);
+        formData.append('columns', columnsv);
+        formData.append('categoryType', categoryType);
+        formData.append('empty_table', empty_table);
+
+
+		let tableColumns;
+		let table_rows;
+		let table_data;
+		let fetch_error;
+		let shouldContinue = true;
+		let cat_or_mod_upd;
+
+        // Make an asynchronous request to fetch items based on the selected project
+        fetch('/upload_csv', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+		.then(data => {
+			if ('error' in data) {
+				fetch_error = data.error;
+				shouldContinue = false
+			} else {
+				tableColumns = data.table_columns;
+				table_rows = data.table_rows;
+				cat_or_mod_upd = data.category_or_module;
+			}
+		})
+        .catch(error => console.error('Error:', error))
+        .finally(() => {
+			if (shouldContinue) {
+				// Clear only the tables within the modal body
+				let modalBody = document.querySelector('#tableDisplay .modal-body');
+				let tables = modalBody.querySelectorAll('table');
+				tables.forEach(table => table.remove());
+
+
+				let grouped_data = {};
+
+				// Group data based on se_id and se_version
+				table_rows.forEach(entry => {
+					let catid = (cat_or_mod_upd === 'm') ? entry['module_id'] : entry['category_id'];
+
+					if (!(catid in grouped_data)) {
+						grouped_data[catid] = [];
+					}
+
+					grouped_data[catid].push(entry);
+				});
+
+				// Convert the dictionary values to arrays
+				let table_data = Object.values(grouped_data).map(entries => entries);
+
+				$('#select_csv_file_to_upload').modal('hide');
+
+				// function is 'select_csv_file.js' file to populate the table in the modal 'tableDisplay'
+				if (cat_or_mod_upd === 'm') {
+					populateTable(tableColumns, table_data, table_name, table_id, exception, project_id, category_id, createprojectmode, modules, 'm', empty_table);
+				}
+				else if (cat_or_mod_upd === 'c') {
+					populateTable(tableColumns, table_data, table_name, table_id, exception, project_id, category_id, createprojectmode, categories, 'c', empty_table);
+				}
+				else {
+					populateTable(tableColumns, table_data, table_name, table_id, exception, project_id, category_id, createprojectmode, '', '', empty_table);
+				}
+			} else {
+				alert(fetch_error);
+			}
+		});
+	}
+
+	// This function is called when Select/unselect all test cases is clicked to check all checkboxes (select all rows)
+	function handleSelectAll(id) {
+		// Select all checkboxes in all tables
+		document.querySelectorAll('table input[type="checkbox"]').forEach(function(checkbox) {
+			if (id == 'selectAllTestCases') {
+				checkbox.checked = true;
+			}
+			else if (id == 'unselectAllTestCases') {
+				checkbox.checked = false;
+			}
+			// Optionally, you can trigger the change event to execute any associated event listeners
+			checkbox.dispatchEvent(new Event('change'));
+		});
+	}
+
+	// Add event listeners to all checkboxes that are shown in Create Test Cycle Mode
+	document.querySelectorAll('input[type="checkbox"]').forEach(function(checkbox) {
+		checkbox.addEventListener('change', function () {
+			// Get the checkbox id
+			var checkboxId = checkbox.id;
+			// Find the corresponding row by traversing the DOM
+			var row = checkbox.closest('tr');
+
+			// Access data attributes
+			var test_case_id = checkbox.getAttribute('data-test_case_id');
+			var exception = checkbox.getAttribute('data-exception');
+			var tableName = checkbox.getAttribute('data-table_name');
+			var projectId = parseFloat(checkbox.getAttribute('data-project_id'));
+			var tableId = parseFloat(checkbox.getAttribute('data-table_id'));
+			rowId = parseFloat(checkboxId.replace("select_test_case", ""));
+			// Add or remove the 'selected-row' class based on checkbox state
+			if (checkbox.checked) {
+				keep_selected_test_cases('insert', projectId, tableId, rowId, test_case_id);
+				row.classList.add('selected-row');
+			} else {
+				keep_selected_test_cases('delete', projectId, tableId, rowId, test_case_id);
+				row.classList.remove('selected-row');
+			}
+		});
+	});
+
+	function keep_selected_test_cases(row_manipulation, projectId, tableId, rowId, test_case_id) {
+		fetch('/save_selected_test_cases_to_db', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ rowId: rowId, test_case_id: test_case_id, projectId: projectId, tableId: tableId, row_manipulation: row_manipulation }),
+        })
+        .then(response => response.json())
+	}
+</script>

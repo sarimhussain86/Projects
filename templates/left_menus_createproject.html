@@ -1,0 +1,451 @@
+<!-- This HTML serves following purposes.
+ - It displays tables of the opened project in left menus
+ - The displayed table names in left menus are clickable and clicking on any of the names will open that table with its data
+ - Has a "create new table" or "Add tables from existing project" form
+ - Enables user to download test cases into CSV
+ - Has functionality to Delete a table in the opened project -->
+
+<!--The following js script opens a form as defined at the bottom of this script. The form opens by clicking on
+ 'Delete Table' button that can be seen only during the edit mode of create project (when editing draft projects)-->
+<script src="{{ url_for('static',filename='js/delete_download_table.js') }}"></script>
+
+<script>
+    // When
+    function addNewTable(project_id) {
+        var newWindowWidth = 600;
+        var newWindowHeight = 700;
+
+        // Calculate center coordinates
+        var screenWidth = window.screen.width;
+        var screenHeight = window.screen.height;
+        var leftPosition = (screenWidth - newWindowWidth) / 2;
+        var topPosition = (screenHeight - newWindowHeight) / 2;
+
+        newtableform_url = 'newtableform' + '?project_id=' + encodeURIComponent(project_id);
+
+            var newWindow = window.open(newtableform_url, '_blank', 'width=' + newWindowWidth + ',height=' + newWindowHeight + ',left=' + leftPosition + ',top=' + topPosition);
+                // Focus on the new window (optional)
+                if (newWindow) {
+                    newWindow.focus();
+                }
+
+                // When user completes the 'New Table' form and submits, the following function will be triggered by
+                // the event listenerr added below
+                function handle_create_or_add_new_table_message(event) {
+                    // Check the origin of the message (for security reasons)
+                    if (event.origin !== window.location.origin) {
+                        return;
+                    }
+
+                  // Access the data from the posted message
+                  var data = event.data;
+
+                  // Use the received data as needed
+
+                  var url = 'add_create_table' + '?AddOrCreateTable=' + encodeURIComponent(data.AddOrCreateTable) + '&columnListValues=' + encodeURIComponent(data.columnListValues) + '&project_id=' + encodeURIComponent(project_id) + '&tableName=' + encodeURIComponent(data.tableName) + '&templateType=' + encodeURIComponent(data.templateType) + '&selectedTables=' + encodeURIComponent(data.selectedTables) + '&project_name=' + encodeURIComponent(data.project_name) + '&project_version=' + encodeURIComponent(data.project_version) + '&selectedTablesDicts=' + encodeURIComponent(data.selectedTablesDicts);
+
+                  // Redirect to the other HTML document
+                  window.location.href = url;
+                  // Now you can access the properties like data.projectName, data.projectNumber, etc.
+            };
+
+            // Ensure the event listener is attached only once
+                window.removeEventListener('message', handle_create_or_add_new_table_message); // Remove previous listener if any
+                window.addEventListener('message', handle_create_or_add_new_table_message, false); // Add an event listener to receive the message
+    }
+
+  // This is called when a table or any table's module/category is clicked from left menus. This function creates a URL
+  // and goes to it, The function in main.py that is called is 'table_createproj()'
+  function sendValues(name, table_id, project_id, cat_mod_id, cat_mod_type, createprojectmode, CreateTestCycleMode) {
+    // Construct the URL with additional parameters
+    // The createprojectmode tells either to call tables when creating new project or tablesrun when working on project
+    // Recall that tableruns get actual results and remarks columns from other table in db as required but tables use
+    // the actual results and remarks columns from mastersheet itself.
+    if (createprojectmode == '1') {
+      createprojectmode = parseFloat(createprojectmode);
+      if (cat_mod_type == 'c') {
+        var url = 'table_createproj?table_name=' + encodeURIComponent(name)  + '&table_id=' + encodeURIComponent(table_id)  + '&project_id=' + encodeURIComponent(project_id) + '&category_id=' + encodeURIComponent(cat_mod_id) + '&createprojectmode=' + encodeURIComponent(createprojectmode) + '&category_module_type=' + encodeURIComponent(cat_mod_type);
+      }
+      else if (cat_mod_type == 'm') {
+        var url = 'table_createproj?table_name=' + encodeURIComponent(name)  + '&table_id=' + encodeURIComponent(table_id)  + '&project_id=' + encodeURIComponent(project_id) + '&module_id=' + encodeURIComponent(cat_mod_id) + '&createprojectmode=' + encodeURIComponent(createprojectmode) + '&category_module_type=' + encodeURIComponent(cat_mod_type);
+      }
+      else {
+        var url = 'table_createproj?table_name=' + encodeURIComponent(name)  + '&table_id=' + encodeURIComponent(table_id)  + '&project_id=' + encodeURIComponent(project_id) + '&category_id=' + encodeURIComponent(cat_mod_id) + '&createprojectmode=' + encodeURIComponent(createprojectmode) + '&category_module_type=' + encodeURIComponent(cat_mod_type);
+      }
+    }
+    else if (CreateTestCycleMode == '1' || CreateTestCycleMode == 1) {
+      CreateTestCycleMode = parseFloat(CreateTestCycleMode);
+      if (cat_mod_type == 'c') {
+        var url = 'table_createproj?table_name=' + encodeURIComponent(name)  + '&table_id=' + encodeURIComponent(table_id)  + '&project_id=' + encodeURIComponent(project_id) + '&category_id=' + encodeURIComponent(cat_mod_id) + '&CreateTestCycleMode=' + encodeURIComponent(CreateTestCycleMode) + '&category_module_type=' + encodeURIComponent(cat_mod_type);
+      }
+      else if (cat_mod_type == 'm') {
+        var url = 'table_createproj?table_name=' + encodeURIComponent(name)  + '&table_id=' + encodeURIComponent(table_id)  + '&project_id=' + encodeURIComponent(project_id) + '&module_id=' + encodeURIComponent(cat_mod_id) + '&CreateTestCycleMode=' + encodeURIComponent(CreateTestCycleMode) + '&category_module_type=' + encodeURIComponent(cat_mod_type);
+      }
+      else {
+        var url = 'table_createproj?table_name=' + encodeURIComponent(name)  + '&table_id=' + encodeURIComponent(table_id)  + '&project_id=' + encodeURIComponent(project_id) + '&category_id=' + encodeURIComponent(cat_mod_id) + '&CreateTestCycleMode=' + encodeURIComponent(CreateTestCycleMode) + '&category_module_type=' + encodeURIComponent(cat_mod_type);
+      }
+    }
+
+    // Redirect to the specified route with parameters
+    window.location.href = url;
+  }
+
+    // This function is called when user clicks on 'Create New Test Cycle' to open the project in create new test cycle mode
+    function create_test_cycle(projectName, projectVersion) {
+        var redirectToCreateTestCycle = window.confirm("Are you sure you want to Create A New Test Cycle From This Project?");
+		// Check the user's response
+		if (redirectToCreateTestCycle) {
+			var url = 'dashboard?projectName=' + encodeURIComponent(projectName) + '&projectVersion=' + encodeURIComponent(projectVersion) + '&CreateTestCycleMode=' + encodeURIComponent(1);
+			window.location.href = url;
+		} else {
+			// User clicked "Cancel", do nothing or handle accordingly
+			return false;
+		}
+    }
+
+    // This function is called when user clicks on 'Confirm' to create a new test cycle for the project with selected test cases
+    function confirm_create_test_cycle(project_id, projectName, projectVersion) {
+        var confirmCreateTestCycle = window.confirm("Are You Sure You Want To Create A Test Cycle With The Selected Test Cases?");
+		// Check the user's response
+		if (confirmCreateTestCycle) {
+			var url = 'confirm_create_test_cycle?project_id=' + encodeURIComponent(project_id) + '&projectName=' + encodeURIComponent(projectName) + '&projectVersion=' + encodeURIComponent(projectVersion);
+			window.location.href = url;
+		} else {
+			// User clicked "Cancel", do nothing or handle accordingly
+			return false;
+		}
+    }
+
+    // This function is called when user clicks on 'cancel' to cancel creating new test cycle
+    function cancel_create_test_cycle(projectName, projectVersion) {
+        var returnToDraftProject = window.confirm("Are you sure you want to Cancel New Test Cycle Creation And Return To The Draft Project?");
+		// Check the user's response
+		if (returnToDraftProject) {
+			var url = 'dashboard?projectName=' + encodeURIComponent(projectName) + '&projectVersion=' + encodeURIComponent(projectVersion) + '&createprojectmode=' + encodeURIComponent(1);
+			window.location.href = url;
+		} else {
+			// User clicked "Cancel", do nothing or handle accordingly
+			return false;
+		}
+    }
+</script>
+
+<style>
+  .green-box {
+    background-color: #4CAF50; /* Green color */
+    align-items: center;
+    width: 88%;
+    /*padding: 10px;*/
+    margin: 10px auto;
+    border-radius: 8px;
+    text-align: center;
+  }
+  .red-box {
+    background-color: #FF0000; /* Red color */
+    align-items: center;
+    width: 88%;
+    /*padding: 10px;*/
+    margin: 10px auto;
+    border-radius: 8px;
+    text-align: center;
+  }
+
+  .disabled-red-box {
+    background-color: rgba(255, 0, 0, 0.5); /* Adjust opacity to visually indicate that the button is dull */
+    opacity: 0.5; /* Adjust overall opacity */
+    cursor: not-allowed; /* Optionally, change cursor style to not-allowed */
+    align-items: center;
+    width: 88%;
+    /*padding: 10px;*/
+    margin: 10px auto;
+    border-radius: 8px;
+    text-align: center;
+  }
+
+    button.add-table-button,
+    button.download-csv-button,
+    button.create-test-cycle-button,
+    button.confirm-create-test-cycle-button {
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        font-size: 15px;
+    }
+
+  button.delete-table-button,
+   button.cancel-create-test-cycle-button {
+    background-color: #FF0000;
+    color: white;
+    border: none;
+    font-size: 15px;
+  }
+
+    /* Style for the dull button */
+    .disabled-delete-table-button {
+      background-color: transparent;
+      cursor: not-allowed; /* Optionally, change cursor style to not-allowed */
+    }
+  .scrollbar {
+    height: 74vh;
+    width: 100%;
+    overflow: auto;
+    padding: 0 10px;
+  }
+  /*       ScrollBar 1        */
+
+  #dynamic-height-list::-webkit-scrollbar {
+    width: 16px;
+  }
+
+  #dynamic-height-list::-webkit-scrollbar-track {
+    border-radius: 8px;
+    background-color: #e7e7e7;
+    border: 1px solid #cacaca;
+  }
+
+  #dynamic-height-list::-webkit-scrollbar-thumb {
+    border-radius: 8px;
+    border: 3px solid transparent;
+    background-clip: content-box;
+    background-color: #d55959;
+  }
+
+  /* Adjust styles for nav-link */
+  .nav-link {
+    margin-bottom: 0px; /* Remove margin */
+    padding: 0; /* Remove padding */
+  }
+
+  .leftMenus {
+    margin-left: 10px; /* Remove margin */
+    padding: 0;
+  }
+
+  /* Style for the lists */
+  ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  li {
+    padding: 8px;
+    border-bottom: 1px solid #ddd; /* Optional: Add a border between items for styling */
+  }
+  .form-group {
+    margin-bottom: 10px;
+  }
+
+  button {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+
+  input[type="submit"] {
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-bottom: 10px;
+  }
+
+  .column-list {
+    list-style-type: none;
+    padding: 0;
+    margin: 10px 0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+
+  .column-list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid #ccc;
+    transition: background-color 0.3s;
+  }
+
+  .column-list-item:last-child {
+    border-bottom: none;
+  }
+
+  .column-list-item:hover {
+    background-color: #f0f0f0;
+  }
+
+  .column-name {
+    font-weight: bold;
+    margin-right: 10px;
+  }
+  .selected {
+    background-color: #4CAF50;
+    color: white;
+  }
+  .hiddenprojectid,
+  .hiddentableid,
+  .hiddentableexception,
+   hiddenitems{
+      display: none;
+  }
+</style>
+
+<div class="col-md-3 col-lg-2 sidebar-offcanvas" id="sidebar" role="navigation">
+  {% if createprojectmode == 1 or createprojectmode == '1' %}
+  <div class="green-box">
+    <button class="add-table-button" onclick="addNewTable({{project_id}})"><strong>Add New Table</strong></button>
+  </div>
+    <div class="green-box">
+        <button class="download-csv-button" data-project_name="{{project_name}}" data-projectVersion="{{projectVersion}}" id="download_csv"><strong>Download CSV</strong></button>
+    </div>
+    <div class="green-box">
+        <button class="create-test-cycle-button" id="create_test_cycle" onclick="create_test_cycle('{{project_name}}', parseFloat('{{projectVersion}}'))"><strong>Create Test Cycle</strong></button>
+    </div>
+    {% if user == 'admin' %}
+        <div class="red-box">
+          <button class="delete-table-button" data-project_name="{{project_name}}" data-projectVersion="{{projectVersion}}" data-createprojectmode={{createprojectmode}} id="DeleteTable"><strong>Delete Table</strong></button>
+        </div>
+    {% else %}
+    <div class="disabled-red-box">
+      <button class="disabled-delete-table-button" data-project_name="{{project_name}}" data-projectVersion="{{projectVersion}}" data-createprojectmode={{createprojectmode}} id="DeleteTable" disabled><strong>Delete Table</strong></button>
+    </div>
+    {% endif %}
+    {% elif CreateTestCycleMode == 1 or CreateTestCycleMode == '1' %}
+    <div class="green-box">
+        <button class="confirm-create-test-cycle-button" id="confirm_create_test_cycle" onclick="confirm_create_test_cycle(parseFloat('{{project_id}}'), '{{project_name}}', parseFloat('{{projectVersion}}'))"><strong>Create</strong></button>
+    </div>
+    <div class="red-box">
+        <button class="cancel-create-test-cycle-button" id="cancel_create_test_cycle" onclick="cancel_create_test_cycle('{{project_name}}', parseFloat('{{projectVersion}}'))"><strong>Cancel</strong></button>
+    </div>
+  {% endif %}
+  <div class="scrollbar"  id="dynamic-height-list" style="max-height: calc(48vh); overflow-y: auto;">
+    <ol class="nav flex-column pl-1 leftMenus" style="list-style-type:I; font-size:14px;">
+      {% for info in table_info %}
+        {% if info.category_ids is none and info.module_ids is none %}
+        <li class="nav-item">
+          <a class="nav-link" href="#" onclick="sendValues('{{info.table_name}}', {{info.table_id}}, {{info.project_id}}, 'None', 'None', '{{createprojectmode}}', '{{CreateTestCycleMode}}')">
+            <p>{{info.table_name}}</p>
+          </a>
+        </li>
+        {% else %}
+      <li class="nav-item">
+        <a class="nav-link" href="#submenu{{loop.index0}}" data-toggle="collapse" data-target="#submenu{{loop.index0}}"><p>{{info.table_name}} ▾</p></a>
+          <ol class="list-unstyled flex-column pl-3 collapse show" id="submenu{{loop.index0}}" aria-expanded="false" style="list-style-type:disc; font-size:13px;">
+            <!-- The 'category_type' value 'c' means 'category', typically used by 'Sanity Test Calls' -->
+            {% if info.category_type == 'c' %}
+                <li class="nav-item"><a class="nav-link" href="#" style="margin-bottom: 1px;" onclick="sendValues('{{info.table_name}}', {{info.table_id}}, {{info.project_id}}, 'None', 'c', '{{createprojectmode}}', '{{CreateTestCycleMode}}')">
+                    <p style="margin-bottom: 10px;">All Test Cases</p></a></li>
+              {% for cat_id in info.category_ids %}
+                {% if cat_id|string in categories %}
+                  <li class="nav-item"><a class="nav-link" href="#" style="margin-bottom: 1px;" onclick="sendValues('{{info.table_name}}', {{info.table_id}}, {{info.project_id}}, {{cat_id}}, 'c', '{{createprojectmode}}', '{{CreateTestCycleMode}}')">
+                    <p style="margin-bottom: 10px;">{{categories[cat_id|string]}}</p></a></li>
+                {% endif %}
+              {% endfor %}
+            {% endif %}
+
+            <!-- The 'category_type' value 'm' means 'modules' -->
+            {% if info.category_type == 'm' %}
+              <li class="nav-item"><a class="nav-link" href="#" style="margin-bottom: 1px;" onclick="sendValues('{{info.table_name}}', {{info.table_id}}, {{info.project_id}}, 'None', 'm', '{{createprojectmode}}', '{{CreateTestCycleMode}}')">
+                <p style="margin-bottom: 10px;">All Test Cases</p></a></li>
+              {% for module_id in info.module_ids %}
+                {% if module_id|string in modules %}
+                  <li class="nav-item"><a class="nav-link" href="#" style="margin-bottom: 1px;" onclick="sendValues('{{info.table_name}}', {{info.table_id}}, {{info.project_id}}, {{module_id}}, 'm', '{{createprojectmode}}', '{{CreateTestCycleMode}}')">
+                    <p style="margin-bottom: 10px;">{{modules[module_id|string]}}</p></a></li>
+                {% endif %}
+              {% endfor %}
+            {% endif %}
+          </ol>
+        </li>
+        {% endif %}
+      {% endfor %}
+    </ol>
+  </div>
+</div>
+
+<!-- Delete Table Form-->
+<div id="selecttabletodelete" class="modal fade">
+    <div class="modal-dialog">
+        <form method="post" id="deleteTableForm" action="{{ url_for('delete_table', projectName='', projectVersion='', project_id='', table_id='', table_name='', createprojectmode=createprojectmode) | safe}}">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"></button>
+                    <h4 class="modal-title"><i class="fa fa-plus"></i>Select Table To Delete</h4>
+                </div>
+                <div class="modal-body">
+                    <ul class="column-list scrollable-box" id="tablelist">
+                        <!-- Pre-populated columns -->
+                        {% for info in table_info %}
+                        <li class="column-list-item">
+                            <span class="column-name">{{info.table_name}}</span>
+                            <!-- Hidden spans -->
+                            <span class="hiddenprojectid" id="project-id-{{info.project_id}}">{{info.project_id}}</span>
+                            <span class="hiddentableid" id="table-id-{{info.table_id}}">{{info.table_id}}</span>
+                            <span class="hiddentableexception" id="exception-{{info.exception}}">{{info.exception}}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div class="modal-footer">
+                    <input type="submit" name="deleteThisTable" id="deleteThisTable" value="deleteThisTable" class="btn btn-info" />
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Custom Delete Confirmation Box, this will be called when user wants to delete a table, it is a second confirmation -->
+<div id="tableConfirmationBox" class="modal fade">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-body">
+                <p id="confirmationMessage">Deleting the table will also delete every test cases in it permanently. Are you sure you want to proceed?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" id="confirmDeleteTable">Delete</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Download CSV Form-->
+<div id="select_table_to_download" class="modal fade">
+    <div class="modal-dialog">
+        <form method="post" id="download_csv_form" action="#">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"></button>
+                    <h4 class="modal-title"><i class="fa fa-plus"></i>Select Table To Delete</h4>
+                </div>
+                <div class="modal-body">
+                    <ul class="column-list scrollable-box" id="tablelist">
+                        <!-- Pre-populated columns -->
+                        {% for info in table_info %}
+                        <li class="column-list-item">
+                            <span class="column-name">{{info.table_name}}</span>
+                            <!-- Hidden spans -->
+                            <span class="hiddenprojectid" id="project-id-{{info.project_id}}">{{info.project_id}}</span>
+                            <span class="hiddentableid" id="table-id-{{info.table_id}}">{{info.table_id}}</span>
+                            <span class="hiddentableexception" id="exception-{{info.exception}}">{{info.exception}}</span>
+                            <span class="hiddenitems" id="table_name"></span>
+                            <span class="hiddenitems" id="table_id"></span>
+                            <span class="hiddenitems" id="project_id"></span>
+                            <span class="hiddenitems" id="exception"></span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div class="modal-footer">
+                    <input type="submit" name="download_this_table" id="download_this_table" value="download_this_table" class="btn btn-info" />
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
