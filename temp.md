@@ -27,6 +27,8 @@ To solve these issues a database implementation is required where data is centra
 
 ## testcase-database1.0.0
 
+### Features
+
 - GUI
 - Database connection
 - Role Based Access
@@ -56,34 +58,32 @@ To solve these issues a database implementation is required where data is centra
 - Filter test cases in a test cycle
 - Delete Test Cycle
 
-The following bugs were fixed in the previous versions 
-
-### testcase-database1.0.4
+## testcase-database1.0.4
 
 - Fixed the bug that occurs when importing test cases from a CSV file. The test case ids that are already present in the table are inserted again from the CSV, also the tesrt case ids with empty values are also inserted. After fixing this bug, the application does allows neither the re-addition of an existing test case ID nor the addition of empty test case id values.
-- Fixed the bug that occurs when adding new test case is added manually. The application does not give error when a test case id is repeated for specific scenarios. After resolving the bug application shows error when test case ids are repeated.
-- Fixed the issue of multiple resubmissions of new table form if a form is repeatedly opened and closed, the application now submits the form only once.
+- Resolved a bug in manually adding new test cases where the application did not display an error for duplicate test case IDs in specific scenarios. The application now shows an error when duplicate test case IDs are entered.
+- Addressed a problem of multiple resubmissions of the new table form when it was repeatedly opened and closed. The application now ensures the form is submitted only once.
 
-### testcase-database1.0.3
+## testcase-database1.0.3
 
-- Fixed the bug that occurs when importing importing test cases from a CSV file. the code deals with 'Remarks' and 'Actual Result' column to remove it but in our case it was case sensitive. Making it case-insensitive resolved the bug.
-- Fixed the bug that occurs when coyping tables from an exisitng project. The empty tables that are to be copied cause the internal server error issue. The code creates insert queries for all tables but for empty tables, the insert query will be half empty that results in the error. Skipping the insert query execution in case of copying the empty tables from an existing project resolved the issue.
+- Fixed a bug in importing test cases from a CSV file where the 'Remarks' and 'Actual Result' columns were case-sensitive. The columns are now handled case-insensitively.
+- Resolved an issue with copying tables from an existing project where empty tables caused internal server errors. The application now skips insert queries for empty tables, preventing these errors.
 
-### testcase-database1.0.2
+## testcase-database1.0.2
 
 - Fixed the bug when copying tables from existing product. Now the tables of exisitng products are visible.
-- Fixed the bug when creating a Table with headers through CSV File. Now the application does not show Internal Server Error.
-- Fixed the password policy problem.
-- Modified the "Add new test case" feature to enable editting test case ids and give error when test case ids are repeated.
+- Fixed an issue with creating a table with headers through a CSV file, eliminating the internal server error.
+- Addressed the password policy problem.
+- Modified the "Add new test case" feature to enable adding test case IDs manually and to show an error when test case IDs are repeated.
 
-### testcase-database1.0.1
+## testcase-database1.0.1
 
-- Fixed the test case id format issue when adding new test cases.
-- Fixed the download CSV file problem, now the files will be automatically downloaded to the local machine on Downloads folder.
-- Fixed the duplicate table names issue for different projects.
+- Resolved the test case ID format issue when adding new test cases.
+- Fixed the download CSV file problem, ensuring files are automatically saved to the local Downloads folder.
+- Corrected the duplicate table names issue across different projects.
 - Fixed "hassaan" name when registering user.
 - Fixed the logout issue. Now when the user goes back, he will not be able to see the GUI (or he will be redirected to the login page)
-- Fixed the "Error While Closing A Project" isse. This functionality was not to be released in the current dev version so I have removed it.
-- Fixed the "Different User Downloading A CSV File" issue.
+- Removed the "Error While Closing A Project" functionality, as it was not intended for the current development version.
+- Fixed the issue where the dialog box opened on another user's computer when downloading a table to a CSV file. Now, files are automatically saved to the local Downloads folder, eliminating the need for the dialog box.
 - Fixed the "Existing Projects Not Visible" issue. Now all the created projects can be seen in the New Project Form.
 - Fixed the "Adding Test Cases via CSV File" issue. The CSV file can now be uploaded.
