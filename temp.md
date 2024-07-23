@@ -7,15 +7,15 @@ These are the latest release notes for Test Case Database. We want to keep custo
 xFlow has been storing the information of test cases in google/excel spreadsheets. The company faces many problems associated with managing test cases on google/excel sheets which are as follows: 
 - There is no centralized database for managing test cases in spreadsheets. 
 - The spreadsheets create problems in a collaborative environment 
--- Especially when changes are performed on the data by a user.  
--- Changes by users require manual notifications. 
--- Multiple edits can lead to confusion and version tracking. 
+	- Especially when changes are performed on the data by a user.  
+	- Changes by users require manual notifications. 
+	- Multiple edits can lead to confusion and version tracking. 
 - The teams face the problem in formatting the data. 
--- The formatted data is sometimes copied or viewed in a single line. 
--- This results in difficulty in viewing the data. 
+	- The formatted data is sometimes copied or viewed in a single line. 
+	- This results in difficulty in viewing the data. 
 - Keeping track of iterations for testing is a little challenging when running test cases. 
 - Report generation does not exist in excel. 
--- Automating this process can save a lot of time. 
+	- Automating this process can save a lot of time. 
 
 To solve these issues a database implementation is required where data is centralized, secured and available to multiple users with the most updated version of the data. The idea is to have a centralized database for managing test cases. The centralized test case DB will be able to keep track of iterations for testing. The centralized test case DB will not only take the release wise iterations into account but also give the reports based on each iteration. Database also has a satisfactory security mechanism which prevents unauthorized users from accessing the data. 
 
