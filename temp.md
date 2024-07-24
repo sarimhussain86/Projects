@@ -59,12 +59,12 @@ To address these challenges, we have implemented a centralized database for mana
 - Closed projects remain editable after completion due to the lack of reporting, so the "close project" functionality was not included.
 - The CSV can only be downloaded to the local Downloads folder; the user cannot select a directory of their choice to export the CSV file.
 - The CSV files can only be recognized the the application if they adhere to the following rules:
-  - *Remove Trailing Spaces*: Delete any blank spaces after the last column of data.
-  - *Delete Unnecessary Columns*: Remove columns beyond the last data column to eliminate any blank spaces and prevent copying unnecessary columns.
-  - *Follow Format Guidelines*: Verify that notes adhere to the specified format. 
-  - *Check Spelling and Standards*: Verify correct spelling and consistency with standards.
-  - *Consistent Column Placement*: Keep module or category headings in the same column.
-  - *Eliminate Empty Row Spaces*: Remove blank spaces from rows that should be empty. 
-  - *Header Formatting*: Rename headers by replacing '/' with 'Or', '#' with 'No', and removing any '-' characters.
+  - **Remove Trailing Spaces**: Delete any blank spaces after the last column of data.
+  - **Delete Unnecessary Columns**: Remove columns beyond the last data column to eliminate any blank spaces and prevent copying unnecessary columns.
+  - **Follow Format Guidelines**: Verify that notes adhere to the specified format. 
+  - **Check Spelling and Standards**: Verify correct spelling and consistency with standards.
+  - **Consistent Column Placement**: Keep module or category headings in the same column.
+  - **Eliminate Empty Row Spaces**: Remove blank spaces from rows that should be empty. 
+  - **Header Formatting**: Rename headers by replacing '/' with 'Or', '#' with 'No', and removing any '-' characters.
 - Notes cannot be added to the tables.
-- New modules or categories cannot be added; QA has to request the database team to add a new module/category.
+- New modules or categories cannot be added; QA must request additions from the database team.
