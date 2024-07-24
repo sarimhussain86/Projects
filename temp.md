@@ -18,11 +18,9 @@ To address these challenges, we have implemented a centralized database for mana
 - Tracking iterations for testing
 - Comprehensive reporting based on each iteration
 
-## Version Updates
+## testcase-database v1.0.0
 
-### testcase-database v1.0.0
-
-#### Features:
+### Features:
 
 #### GUI Implementation
 - GUI
@@ -52,7 +50,7 @@ To address these challenges, we have implemented a centralized database for mana
 - Filter test cases in a test cycle
 - Delete Test Cycle
 
-## Known Limitations
+### Known Limitations
 
 - Usernames must be unique and a single word without spaces.
 - Automated reporting is not included in this version; test case reports must be created manually by the QA team.
