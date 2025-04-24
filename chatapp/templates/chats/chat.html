@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Room</title>
+    <style>
+        .chat-container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .chat-log {
+            height: 300px;
+            overflow-y: scroll;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        .chat-input {
+            display: flex;
+            gap: 10px;
+        }
+        .chat-input input {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .chat-input button {
+            padding: 8px 16px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .chat-input button:hover {
+            background-color: #0056b3;
+        }
+        .message {
+            margin: 5px 0;
+        }
+        .message.sent .ack {
+            color: green;
+            margin-left: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <h2>Chat Room: {{ room_name }}</h2>
+        <div id="chat-log" class="chat-log"></div>
+        <div class="chat-input">
+            <input type="text" id="username" placeholder="Your username" value="Anonymous">
+            <input type="text" id="chat-message-input" placeholder="Type a message...">
+            <button onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+    <script>
+        const roomName = "{{ room_name|escapejs }}";
+        const chatSocket = new WebSocket(
+            'ws://' + window.location.host + '/ws/chat/' + roomName + '/'
+        );
+
+        const chatLog = document.getElementById('chat-log');
+        const messageInput = document.getElementById('chat-message-input');
+        const usernameInput = document.getElementById('username');
+
+        chatSocket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            if (data.type === 'message') {
+                const messageId = data.message_id;
+                const div = document.createElement('div');
+                div.className = 'message';
+                div.innerHTML = `<strong>${data.username}</strong>: ${data.message} <span id="ack-${messageId}" class="ack"></span>`;
+                chatLog.appendChild(div);
+                chatLog.scrollTop = chatLog.scrollHeight;
+            } else if (data.type === 'ack' && data.status === 'delivered') {
+                const ackElement = document.getElementById(`ack-${data.message_id}`);
+                if (ackElement) {
+                    ackElement.innerText = '✓';
+                }
+            }
+        };
+
+        chatSocket.onclose = function(e) {
+            console.error('Chat socket closed unexpectedly');
+        };
+
+        function sendMessage() {
+            const message = messageInput.value;
+            const username = usernameInput.value || 'Anonymous';
+            if (message.trim() !== '') {
+                const messageId = Date.now().toString();
+                chatSocket.send(JSON.stringify({
+                    'message': message,
+                    'username': username,
+                    'message_id': messageId
+                }));
+                const div = document.createElement('div');
+                div.className = 'message sent';
+                div.innerHTML = `<strong>${username}</strong>: ${message} <span id="ack-${messageId}" class="ack"></span>`;
+                chatLog.appendChild(div);
+                chatLog.scrollTop = chatLog.scrollHeight;
+                messageInput.value = '';
+            }
+        }
+
+        messageInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>
